@@ -1,7 +1,25 @@
+import React, { useEffect } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import { db } from './firebase'; // Import Firestore database
+import { collection, getDocs } from 'firebase/firestore';
 
 function App() {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'test-collection'));
+        querySnapshot.forEach((doc) => {
+          console.log(doc.id, '=>', doc.data());
+        });
+      } catch (error) {
+        console.error('Error fetching Firestore data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <div className="App">
       <header className="App-header">
