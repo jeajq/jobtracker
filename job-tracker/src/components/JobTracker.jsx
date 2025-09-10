@@ -1,59 +1,40 @@
 import React, { useRef, useState } from "react";
 import "./job-tracker.css";
 import JobColumn from "./JobColumn"; 
-
-// Unique ID string for each Job Card
-function uid() {
-  return Math.random().toString(36).slice(2, 9);
-}
-
-const initialBoard = {
-  applied: [
-    { id: uid(), title: "Frontend Engineer", company: "Acme", type: "Full-time",
-      description: "React • TypeScript • CSS", dateApplied: "2025-09-01", status: "blue" },
-  ],
-  assessment: [
-    { id: uid(), title: "Graduate SWE", company: "Globex", type: "Graduate",
-      description: "HackerRank scheduled", dateApplied: "2025-08-25", status: "pink" },
-  ],
-  interview: [],
-  offer: [
-    { id: uid(), title: "Junior Developer", company: "Initech", type: "Contract",
-      description: "Offer pending", dateApplied: "2025-08-15", status: "green" },
-  ],
-   rejected: [ 
-    {
-      id: uid(),
-      title: "Backend Engineer",
-      company: "Umbrella Corp",
-      type: "Permanent",
-      description: "Rejected after coding test",
-      dateApplied: "2025-07-20",
-      status: "red",
-    },
-    {
-      id: uid(),
-      title: "QA Tester",
-      company: "Hooli",
-      type: "Contract",
-      description: "No response after interview",
-      dateApplied: "2025-06-10",
-      status: "red",
-    },
-  ],
-};
+import { collection, onSnapshot, query, where, orderBy } from "firebase/firestore";
+import { db } from "../lib/firebase";
 
 const COLUMNS = [
   { id: "applied", label: "Applied" },
   { id: "assessment", label: "Assessment" },
   { id: "interview", label: "Interview" },
   { id: "offer", label: "Offer" },
-  { id: "rejected", label: "Rejected" }, 
+  { id: "rejected", label: "Rejected" },
 ];
 
 export default function JobTracker() {
-  const [board, setBoard] = useState(initialBoard);
+  const [board, setBoard] = useState({
+    applied: [], assessment: [], interview: [], offer: [], rejected: []
+  });
   const [search, setSearch] = useState("");
+
+  // Subscribe to Firestore jobs in each column
+  useEffect(() => {
+    const unsubs = COLUMNS.map(({ id }) => {
+      const q = query(
+        collection(db, "jobs"),
+        where("status", "==", id),
+        orderBy("order", "asc")
+      );
+      return onSnapshot(q, snap => {
+        setBoard(prev => ({
+          ...prev,
+          [id]: snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        }));
+      });
+    });
+    return () => unsubs.forEach(u => u());
+  }, []);
 
   const dragRef = useRef({ colId: null, index: null });
 
@@ -163,3 +144,54 @@ export default function JobTracker() {
     </div>
   );
 }
+
+
+/*
+// Unique ID string for each Job Card
+function uid() {
+  return Math.random().toString(36).slice(2, 9);
+}
+
+const initialBoard = {
+  applied: [
+    { id: uid(), title: "Frontend Engineer", company: "Acme", type: "Full-time",
+      description: "React • TypeScript • CSS", dateApplied: "2025-09-01", status: "blue" },
+  ],
+  assessment: [
+    { id: uid(), title: "Graduate SWE", company: "Globex", type: "Graduate",
+      description: "HackerRank scheduled", dateApplied: "2025-08-25", status: "pink" },
+  ],
+  interview: [],
+  offer: [
+    { id: uid(), title: "Junior Developer", company: "Initech", type: "Contract",
+      description: "Offer pending", dateApplied: "2025-08-15", status: "green" },
+  ],
+   rejected: [ 
+    {
+      id: uid(),
+      title: "Backend Engineer",
+      company: "Umbrella Corp",
+      type: "Permanent",
+      description: "Rejected after coding test",
+      dateApplied: "2025-07-20",
+      status: "red",
+    },
+    {
+      id: uid(),
+      title: "QA Tester",
+      company: "Hooli",
+      type: "Contract",
+      description: "No response after interview",
+      dateApplied: "2025-06-10",
+      status: "red",
+    },
+  ],
+};
+
+const COLUMNS = [
+  { id: "applied", label: "Applied" },
+  { id: "assessment", label: "Assessment" },
+  { id: "interview", label: "Interview" },
+  { id: "offer", label: "Offer" },
+  { id: "rejected", label: "Rejected" }, 
+];*/
