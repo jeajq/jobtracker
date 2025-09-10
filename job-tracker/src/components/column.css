@@ -1,0 +1,43 @@
+.columns-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+  gap: 10px;
+  padding: 10px;
+}
+
+.column {
+  background: #f7f7f7;
+  border: 1px solid #ccc;
+  padding: 20px;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  position: relative;
+  user-select: none;
+  cursor: grab;
+  transition: transform 120ms, box-shadow 120ms, opacity 120ms;
+}
+
+.column:active {
+  cursor: grabbing;
+  transform: scale(0.98);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+.drag-hint {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.column:hover {
+  box-shadow: 0 0 0 2px #b3d4fc inset;
+}

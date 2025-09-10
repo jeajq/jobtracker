@@ -1,13 +1,11 @@
 import React from "react";
-import Card from "./components/card";
+import Card from "./components/column";
 
-function App() {
+export default function App() {
   return (
     <div>
-      <h1>Job Tracker</h1>
+      <h1 style={{ margin: 16 }}>Job Tracker</h1>
       <Card />
     </div>
   );
 }
-
-export default App;
