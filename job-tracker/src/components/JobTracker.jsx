@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import "./job-tracker.css";
 import JobColumn from "./JobColumn"; 
 
+// Unique ID string for each Job Card
 function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
