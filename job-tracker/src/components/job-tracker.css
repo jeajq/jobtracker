@@ -25,9 +25,9 @@ body,
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  background: #131218;  
+  color: #fff;
+  overflow: hidden;
 }
 
 .jt-app {
@@ -90,7 +90,11 @@ body {
   min-width: 0;
 }
 
+:root { --topbar-h: 64px; }     
 .jt-topbar {
+  height: var(--topbar-h);
+  min-height: var(--topbar-h);
+  max-height: var(--topbar-h);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -98,6 +102,7 @@ body {
   border-bottom: 1px solid var(--border);
   background: var(--panel-2);
 }
+
 
 .jt-search {
   width: 420px;
@@ -128,24 +133,27 @@ body {
 }
 
 .jt-board {
+  height: calc(100vh - var(--topbar-h));
   padding: 18px;
+  overflow: hidden;              
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr); 
   gap: 22px;
 }
 
 /* Column */
 .jt-column {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;                 
   background: #191821;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  min-height: 540px;
   box-shadow: var(--shadow);
-  display: flex;
-  flex-direction: column;
 }
 
 .jt-col-head {
+  flex: 0 0 auto;
   padding: 14px;
   border-bottom: 1px solid var(--border);
 }
@@ -195,10 +203,11 @@ body {
 }
 
 .jt-cards {
+  flex: 1 1 auto;
+  min-height: 0;                  
+  overflow-y: auto;               
   padding: 12px;
-  flex: 1;
 }
-
 .jt-drop {
   height: 12px;
   margin: 6px 0;

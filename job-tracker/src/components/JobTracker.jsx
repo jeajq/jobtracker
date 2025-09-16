@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import "./job-tracker.css";
 import JobColumn from "./JobColumn"; 
 import { collection, onSnapshot, query, where, orderBy } from "firebase/firestore";
@@ -18,7 +18,7 @@ export default function JobTracker() {
   });
   const [search, setSearch] = useState("");
 
-  // Subscribe to Firestore jobs in each column
+  // Updated Firestore jobs in each column
   useEffect(() => {
     const unsubs = COLUMNS.map(({ id }) => {
       const q = query(
@@ -144,7 +144,6 @@ export default function JobTracker() {
     </div>
   );
 }
-
 
 /*
 // Unique ID string for each Job Card
