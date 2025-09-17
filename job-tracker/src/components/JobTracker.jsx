@@ -8,8 +8,8 @@ import {
     onSnapshot,
     query,
     where,
-    getDocs,
-    //orderBy,
+    //getDocs,
+    orderBy,
 } from "firebase/firestore";
 
 const COLUMNS = [
@@ -27,7 +27,7 @@ export default function JobTracker() {
     const [search, setSearch] = useState("");
 
     useEffect(() => {
-        /*const unsubs = COLUMNS.map(({ id }) => {
+        const unsubs = COLUMNS.map(({ id }) => {
             const q = query(
                 collection(db, "jobs"),
                 where("status", "==", id),
@@ -39,38 +39,9 @@ export default function JobTracker() {
                     [id]: snap.docs.map(d => ({ id: d.id, ...d.data() }))
                 }));
             });
-        });*/
-        const unsubs = COLUMNS.map(({ id }) => {
-            const q = query(
-                collection(db, "jobs"),
-                where("status", "==", id)
-            );
-            return onSnapshot(
-                q,
-                (snap) => {
-                    const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    console.log(`[JT] ${id}: ${rows.length} docs`, rows);
-                    setBoard(prev => ({ ...prev, [id]: rows }));
-                },
-                (err) => {
-                    console.error(`onSnapshot erro for ${id}:`, err);
-                }
-            );
         });
         return () => unsubs.forEach(u => u());
     }, []);
-
-    useEffect(() => {
-    (async () => {
-      try {
-        const snap = await getDocs(collection(db, "jobs"));
-        const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        console.log("ALL JOBS:", all);
-      } catch (e) {
-        console.error("getDocs error:", e);
-      }
-    })();
-  }, []);
 
     const filtered = (cards) => {
         const q = search.trim().toLowerCase();
