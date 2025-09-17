@@ -1,0 +1,296 @@
+:root {
+  --bg: #23222a;
+  --panel: #2b2933;
+  --panel-2: #201f27;
+  --card: #1b1a22;
+  --border: #3a3745;
+  --muted: #a9a8b6;
+  --text: #f2f2f6;
+  --text-dim: #cfcfe0;
+  --accent: #8a86ff;
+  --shadow: 0 10px 26px rgba(0, 0, 0, .35);
+  --radius: 16px;
+  --radius-sm: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+}
+
+.jt-app {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  height: 100vh;
+}
+
+/* Sidebar */
+.jt-sidebar {
+  background: #272530;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+}
+
+.jt-logo {
+  padding: 10px 12px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: .5px;
+}
+
+.jt-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.jt-nav-item {
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 10px 12px;
+  border-radius: 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.jt-nav-item.active,
+.jt-nav-item:hover {
+  background: var(--panel);
+  color: var(--text);
+}
+
+.jt-logout {
+  margin-top: auto;
+  background: var(--panel);
+  color: var(--text-dim);
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+/* Main */
+.jt-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.jt-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-2);
+}
+
+.jt-search {
+  width: 420px;
+  max-width: 60vw;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 10px 14px;
+  outline: none;
+}
+
+.jt-topbar-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.jt-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.jt-gear {
+  color: var(--text-dim);
+}
+
+.jt-board {
+  padding: 18px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+
+/* Column */
+.jt-column {
+  background: #191821;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: 540px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.jt-col-head {
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.jt-col-title {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jt-badge {
+  font-size: 12px;
+  background: #2e2c37;
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 8px;
+  color: var(--text-dim);
+}
+
+.jt-add {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.jt-add input {
+  flex: 1;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.jt-add button {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.jt-add button:hover {
+  background: #343147;
+}
+
+.jt-cards {
+  padding: 12px;
+  flex: 1;
+}
+
+.jt-drop {
+  height: 12px;
+  margin: 6px 0;
+  border-radius: 6px;
+}
+
+.jt-drop:hover {
+  background: rgba(138, 134, 255, .2);
+  outline: 1px dashed rgba(138, 134, 255, .45);
+}
+
+/* Card */
+.jt-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  margin: 8px 0;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .25);
+  cursor: grab;
+  user-select: none;
+  transition: transform .12s, box-shadow .12s, opacity .12s;
+}
+
+.jt-card:active {
+  cursor: grabbing;
+  transform: scale(.99);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, .35);
+}
+
+.jt-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.jt-card-title {
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.jt-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.jt-dot.blue {
+  background: #6fb6ff;
+}
+
+.jt-dot.pink {
+  background: #e6a4d7;
+}
+
+.jt-dot.green {
+  background: #78d38a;
+}
+
+.jt-dot.red {
+  background: #ff7e7e;
+}
+
+.jt-card-main {
+  margin-top: 8px;
+}
+
+.jt-field {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: var(--text);
+  background: #2a2833;
+  border: 1px solid var(--border);
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.jt-muted {
+  color: var(--text-dim);
+  margin-top: 8px;
+}
+
+.jt-date {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.jt-card-footer {
+  margin-top: 6px;
+  color: var(--text-dim);
+  text-align: right;
+}
