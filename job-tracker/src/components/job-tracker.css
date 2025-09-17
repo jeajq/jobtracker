@@ -3,14 +3,14 @@
 }
 
 :root {
-  --bg: #131218;
-  --sidebar: #1b1a23;
-  --panel: #191821;
-  --panel-2: #23212f;
-  --border: #2b2935;
-  --text: #e2e2e7;
-  --text-dim: #b8b6c5;
-  --muted: #9b99a7;
+  --bg: #22212b;
+  --sidebar: #2a2933;
+  --panel: ##11111a;
+  --panel-2: #262433;
+  --border: #3b3948;
+  --text: #ececf3;
+  --text-dim: #c9c7d6;
+  --muted: #9a98a8;
   --topbar-h: 64px;
   --radius-lg: 16px;
   --radius: 10px;
@@ -110,7 +110,7 @@ body,
 
 .jt-search {
   width: clamp(240px, 60vw, 820px);
-  background: var(--sidebar);
+  background: #2e2d38;
   color: var(--text);
   border: none;
   outline: none;
@@ -199,7 +199,7 @@ body,
 /* Card */
 .jt-card {
   background: var(--panel-2);
-  border: 1px solid #2e2c3a;
+  border: 1px solid ##343245;
   border-radius: var(--radius);
   padding: 12px;
   margin-bottom: 12px;
