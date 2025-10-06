@@ -1,6 +1,6 @@
-import JobTracker from "./components/JobTracker";
+import JobTrackerPage from "./components/JobTrackerPage.jsx";
 
 export default function App() {
-  return <JobTracker />;
+  return <JobTrackerPage/>;
 }
 

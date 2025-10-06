@@ -18,3 +18,4 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
+console.log("[FB] projectId =", firebaseConfig.projectId);
