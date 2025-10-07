@@ -5,7 +5,7 @@ import {
   addDoc, collection, serverTimestamp,
 } from "firebase/firestore";
 
-// --- tiny mock dataset until you connect a real API ---
+// --- mock dataset until real API connection ---
 const MOCK_JOBS = [
   {
     id: "m1",
@@ -62,7 +62,6 @@ export default function JobSearchPage() {
   function runSearch(e) {
     e?.preventDefault();
     setLoading(true);
-    // simulate network latency
     setTimeout(() => {
       setResults(filteredMock);
       setLoading(false);
@@ -77,7 +76,6 @@ export default function JobSearchPage() {
   }
 
   useEffect(() => {
-    // initial state shows “nothing here” → user presses find
     setResults([]);
   }, []);
 
@@ -94,7 +92,6 @@ export default function JobSearchPage() {
       </aside>
 
       <main className="jt-main">
-        {/* top search bar row like in your design */}
         <header className="jt-topbar jt-topbar--search">
           <form onSubmit={runSearch} className="jt-search-row">
             <input
