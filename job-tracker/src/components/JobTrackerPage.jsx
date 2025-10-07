@@ -29,7 +29,6 @@ export default function JobTracker() {
     });
     const [search, setSearch] = useState("");
 
-    // ✅ Hooks must be inside the component
     const dragRef = useRef({ colId: null, index: null });
     const isUpdating = useRef(false);
 
@@ -39,13 +38,13 @@ export default function JobTracker() {
             const q = query(
                 collection(db, "jobs"),
                 where("status", "==", id),
-                orderBy("order", "asc")      // remove this if you haven't created the index yet
+                orderBy("order", "asc")     
             );
 
             return onSnapshot(
                 q,
                 (snap) => {
-                    if (isUpdating.current) return; // skip echo during writes
+                    if (isUpdating.current) return; 
                     const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
                     setBoard((prev) => ({ ...prev, [id]: rows }));
                 },
@@ -60,7 +59,7 @@ export default function JobTracker() {
     function handleDragStart(colId, index, e) {
         dragRef.current = { colId, index };
         e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", `${colId}:${index}`); // Firefox
+        e.dataTransfer.setData("text/plain", `${colId}:${index}`);
     }
 
     async function persistReorder(fromColId, toColId, nextBoardState) {
@@ -84,14 +83,11 @@ export default function JobTracker() {
     // BEFORE a specific index
     function handleDropToPosition(targetColId, targetIndex, e) {
         e.preventDefault();
-        e.stopPropagation(); // 👈 prevent parent onDrop from firing
+        e.stopPropagation(); 
 
         const { colId: fromColId, index: fromIndex } = dragRef.current || {};
         if (fromColId == null || fromIndex == null) return;
-
-        // 🔒 No-op moves:
-        // - same column & same slot
-        // - same column & "drop just after itself" (equivalent position)
+  
         if (
             fromColId === targetColId &&
             (fromIndex === targetIndex || fromIndex + 1 === targetIndex)
@@ -130,7 +126,6 @@ export default function JobTracker() {
         const { colId: fromColId, index } = dragRef.current || {};
         if (fromColId == null || index == null) return;
 
-        // 🔒 No-op: already at end of same column
         if (fromColId === toColId && index === board[toColId].length - 1) {
             dragRef.current = { colId: null, index: null };
             return;
