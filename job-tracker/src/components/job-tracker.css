@@ -281,3 +281,30 @@ body,
   background: rgba(138, 134, 255, .2);
   outline: 1px dashed rgba(138, 134, 255, .45);
 }
+
+/* Centered empty state */
+.jt-empty-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 120px); /* minus topbar & sidebar */
+  color: #c5c5d3;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.jt-empty-center .jt-primary {
+  margin-top: 1rem;
+  background-color: #3a3a5a;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.4rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+
+.jt-empty-center .jt-primary:hover {
+  background-color: #545480;
+}

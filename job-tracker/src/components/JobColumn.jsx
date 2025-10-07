@@ -21,11 +21,22 @@ export default function JobColumn({
       <div className="jt-cards" role="list">
         {cards.map((card, idx) => (
           <React.Fragment key={card.id}>
-            <div className="jt-drop" onDrop={(e) => onDropBefore(idx, e)} />
+            <div
+              className="jt-drop"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.stopPropagation(); 
+                onDropBefore(idx, e);
+              }}
+            />
             <JobCard data={card} onDragStart={(e) => onDragStart(id, idx, e)} />
           </React.Fragment>
         ))}
-        <div className="jt-drop" onDrop={onDropEnd} />
+        <div
+          className="jt-drop"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={onDropEnd}  // end-drop only
+        />
       </div>
     </div>
   );
