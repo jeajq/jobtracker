@@ -29,7 +29,6 @@ The client’s goal was to create a **centralised job management system** that c
 
 ## Tech Stack
 
-- **Frontend:** React
-- **Languages:** JavaScript, Tailwind CSS, HTML 
+- **Languages:** ReactJS, Tailwind CSS, HTML 
 - **Database:** Google Firebase Firestore
 - **Desktop Framework:** Electron
