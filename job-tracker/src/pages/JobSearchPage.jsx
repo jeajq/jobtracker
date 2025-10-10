@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import "./job-tracker.css";
+import "../components/job-tracker.css";
 import { db } from "../lib/firebase";
 import {
   addDoc, collection, serverTimestamp,
@@ -42,7 +42,7 @@ const MOCK_JOBS = [
   },
 ];
 
-export default function JobSearchPage() {
+export default function JobSearchPage({ user }) {
   const [query, setQuery] = useState("");
   const [industry, setIndustry] = useState("");
   const [location, setLocation] = useState("");
@@ -82,14 +82,19 @@ export default function JobSearchPage() {
   return (
     <div className="jt-app">
       <aside className="jt-sidebar">
-        <div className="jt-logo">job.tracker</div>
-        <nav className="jt-nav">
-          <a className="jt-nav-item" href="#board"><span>Job Board</span></a>
-          <a className="jt-nav-item active" href="#search"><span>Job Search</span></a>
-          <a className="jt-nav-item" href="#saved"><span>Saved Jobs</span></a>
-        </nav>
-        <div className="jt-logout">Log Out ⟶</div>
-      </aside>
+          <div className="jt-logo">job.tracker</div>
+            <nav className="jt-nav">
+              <a className="jt-nav-item active" href="#board"><span>Job Board</span></a>
+              <a className="jt-nav-item" href="#search"><span>Job Search</span></a>
+              <a className="jt-nav-item" href="#saved"><span>Saved Jobs</span></a>
+
+              {/* Only show for employers */}
+              {user?.type === "employer" && (
+                  <a className="jt-nav-item" href="#employer-jobs"><span>View Added Jobs</span></a>
+              )}
+            </nav>
+          <div className="jt-logout">Log Out ⟶</div>
+        </aside>
 
       <main className="jt-main">
         <header className="jt-topbar jt-topbar--search">

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import "./job-tracker.css";
+import "../components/job-tracker.css";
 import { db } from "../lib/firebase";
 import {
   collection, onSnapshot, orderBy, query, deleteDoc, doc,
 } from "firebase/firestore";
 
-export default function SavedJobsPage() {
+export default function SavedJobsPage({user}) {
   const [saved, setSaved] = useState([]);
 
   useEffect(() => {
@@ -23,14 +23,19 @@ export default function SavedJobsPage() {
   return (
     <div className="jt-app">
       <aside className="jt-sidebar">
-        <div className="jt-logo">job.tracker</div>
-        <nav className="jt-nav">
-          <a className="jt-nav-item" href="#board"><span>Job Board</span></a>
-          <a className="jt-nav-item" href="#search"><span>Job Search</span></a>
-          <a className="jt-nav-item active" href="#saved"><span>Saved Jobs</span></a>
-        </nav>
-        <div className="jt-logout">Log Out ⟶</div>
-      </aside>
+          <div className="jt-logo">job.tracker</div>
+            <nav className="jt-nav">
+              <a className="jt-nav-item active" href="#board"><span>Job Board</span></a>
+              <a className="jt-nav-item" href="#search"><span>Job Search</span></a>
+              <a className="jt-nav-item" href="#saved"><span>Saved Jobs</span></a>
+
+              {/* Only show for employers */}
+              {user?.type === "employer" && (
+                  <a className="jt-nav-item" href="#employer-jobs"><span>View Added Jobs</span></a>
+              )}
+            </nav>
+          <div className="jt-logout">Log Out ⟶</div>
+        </aside>
 
       <main className="jt-main">
         <header className="jt-topbar">
