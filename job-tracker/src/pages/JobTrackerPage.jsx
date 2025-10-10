@@ -1,14 +1,14 @@
 // src/components/JobTrackerPage.jsx
 import React, { useEffect, useState, useRef } from "react";
-import "./job-tracker.css";
-import JobColumn from "./JobColumn.jsx";
+import "../components/job-tracker.css";
+import JobColumn from "../components/JobColumn.jsx";
 import { db } from "../lib/firebase.js";
 import {
     collection,
     onSnapshot,
     query,
     where,
-    orderBy,          // keep if you want ordered columns
+    orderBy,
     writeBatch,
     doc,
     updateDoc,
@@ -23,7 +23,7 @@ const COLUMNS = [
     { id: "rejected", label: "Rejected" },
 ];
 
-export default function JobTracker() {
+export default function JobTrackerPage({ user }) {
     const [board, setBoard] = useState({
         applied: [], assessment: [], interview: [], offer: [], rejected: []
     });
@@ -32,13 +32,13 @@ export default function JobTracker() {
     const dragRef = useRef({ colId: null, index: null });
     const isUpdating = useRef(false);
 
-    // --- live subscriptions per column (ordered) ---
+    // --- live subscriptions per column ---
     useEffect(() => {
         const unsubs = COLUMNS.map(({ id }) => {
             const q = query(
                 collection(db, "jobs"),
                 where("status", "==", id),
-                orderBy("order", "asc")     
+                orderBy("order", "asc")
             );
 
             return onSnapshot(
@@ -63,7 +63,6 @@ export default function JobTracker() {
     }
 
     async function persistReorder(fromColId, toColId, nextBoardState) {
-        // write new order (and possibly status) to Firestore
         const batch = writeBatch(db);
         const colsToWrite = new Set([fromColId, toColId]);
 
@@ -79,8 +78,6 @@ export default function JobTracker() {
         await batch.commit();
     }
 
-    // drop BEFORE a specific index
-    // BEFORE a specific index
     function handleDropToPosition(targetColId, targetIndex, e) {
         e.preventDefault();
         e.stopPropagation(); 
@@ -119,7 +116,6 @@ export default function JobTracker() {
         dragRef.current = { colId: null, index: null };
     }
 
-    // drop to column END
     function handleDropToEnd(toColId, e) {
         e.preventDefault();
 
@@ -174,6 +170,11 @@ export default function JobTracker() {
                     <a className="jt-nav-item active" href="#board"><span>Job Board</span></a>
                     <a className="jt-nav-item" href="#search"><span>Job Search</span></a>
                     <a className="jt-nav-item" href="#saved"><span>Saved Jobs</span></a>
+
+                    {/* Only show for employers */}
+                    {user?.type === "employer" && (
+                        <a className="jt-nav-item" href="#employer-jobs"><span>View Added Jobs</span></a>
+                    )}
                 </nav>
                 <div className="jt-logout">Log Out ⟶</div>
             </aside>
