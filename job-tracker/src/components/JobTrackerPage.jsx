@@ -1,4 +1,3 @@
-// src/components/JobTrackerPage.jsx
 import React, { useEffect, useState, useRef } from "react";
 import "./job-tracker.css";
 import JobColumn from "./JobColumn.jsx";
@@ -8,7 +7,7 @@ import {
     onSnapshot,
     query,
     where,
-    orderBy,          // keep if you want ordered columns
+    orderBy,          
     writeBatch,
     doc,
     updateDoc,
@@ -39,13 +38,13 @@ export default function JobTracker() {
             const q = query(
                 collection(db, "jobs"),
                 where("status", "==", id),
-                orderBy("order", "asc")      // remove this if you haven't created the index yet
+                orderBy("order", "asc")    
             );
 
             return onSnapshot(
                 q,
                 (snap) => {
-                    if (isUpdating.current) return; // skip echo during writes
+                    if (isUpdating.current) return; 
                     const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
                     setBoard((prev) => ({ ...prev, [id]: rows }));
                 },
@@ -56,15 +55,14 @@ export default function JobTracker() {
         return () => unsubs.forEach((u) => u());
     }, []);
 
-    // ---------- DnD handlers ----------
+    // Track drag start
     function handleDragStart(colId, index, e) {
         dragRef.current = { colId, index };
         e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", `${colId}:${index}`); // Firefox
+        e.dataTransfer.setData("text/plain", `${colId}:${index}`); 
     }
-
+    // Update database after reordering
     async function persistReorder(fromColId, toColId, nextBoardState) {
-        // write new order (and possibly status) to Firestore
         const batch = writeBatch(db);
         const colsToWrite = new Set([fromColId, toColId]);
 
