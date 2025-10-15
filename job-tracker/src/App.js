@@ -4,6 +4,7 @@ import JobTrackerPage from "./pages/JobTrackerPage";
 import JobSearchPage from "./pages/JobSearchPage";
 import SavedJobsPage from "./pages/SavedJobsPage";
 import EmployerJobsPage from "./pages/EmployerJobsPage";
+import SkillsPage from "./pages/SkillsPage";  
 
 export default function App() {
   const [user, setUser] = useState(null); // logged-in user info
@@ -28,6 +29,7 @@ export default function App() {
   // Normal user routes
   if (tab === "#search") return <JobSearchPage user={user} />;
   if (tab === "#saved") return <SavedJobsPage user={user} />;
+  if (tab === "#skills") return <SkillsPage user={user} />;
   return <JobTrackerPage user={user} />; // user dashboard
   
 }

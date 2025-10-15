@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
+import Sidebar from "../components/sidebar";
 import "../components/job-tracker.css"; 
 import AddJob from "./AddJob.jsx"; // import your AddJob popup
 
@@ -38,18 +39,7 @@ export default function EmployerJobsPage({ user }) {
 
   return (
     <div className="jt-app">
-      <aside className="jt-sidebar">
-        <div className="jt-logo">job.tracker</div>
-        <nav className="jt-nav">
-          <a className="jt-nav-item active" href="#board"><span>Job Board</span></a>
-          <a className="jt-nav-item" href="#search"><span>Job Search</span></a>
-          <a className="jt-nav-item" href="#saved"><span>Saved Jobs</span></a>
-          {user?.type === "employer" && (
-            <a className="jt-nav-item" href="#employer-jobs"><span>View Added Jobs</span></a>
-          )}
-        </nav>
-        <div className="jt-logout">Log Out ⟶</div>
-      </aside>
+      <Sidebar user={user} />
 
       <main className="jt-main">
         <header className="jt-topbar">

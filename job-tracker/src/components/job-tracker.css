@@ -549,5 +549,196 @@ body,
   margin: 2px 0;
 }
 
+/* Skills page*/
+/* Surface card around the table */
+.jt-surface {
+  background: var(--panel, #11111a);
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+  padding: 16px 10px 10px;      
+  margin: 16px 16px 24px;
+  border: 1px solid rgba(255,255,255,0.04);
+  overflow: hidden;            
+}
 
+.jt-surface-head {
+  font-weight: 600;
+  letter-spacing: .2px;
+  margin: 2px 0 12px;
+  color: rgba(255,255,255,0.9);
+}
+
+/* Table */
+.jt-table {                    
+  width: 100%;
+  padding: 0 6px 8px;
+}
+
+.jt-tr {                        
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  margin: 8px 6px;        
+}
+
+.jt-tr--head {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.65);
+  text-transform: lowercase;
+  font-size: 13px;
+  letter-spacing: .3px;
+  margin: 0 6px 8px;          
+}
+
+.jt-td { 
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: rgba(255,255,255,0.9);
+}
+
+.jt-td .jt-link {
+  font-weight: 600;
+}
+
+.w-40 { flex: 0 0 40%; }
+.w-30 { flex: 0 0 30%; }
+.w-20 { flex: 0 0 15%; }
+.w-10 { flex: 0 0 10%; }
+.ta-right { text-align: right; }
+
+/* Tiny sort caret in headers */
+.jt-sort {
+  opacity: .7;
+  margin-right: 6px;
+}
+
+/* Chips / badges */
+.jt-badge,
+.jt-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.jt-badge {
+  background: rgba(147, 167, 255, 0.16);
+  border: 1px solid rgba(147, 167, 255, 0.25);
+  color: rgba(215, 222, 255, 0.9);
+}
+
+.jt-tag {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Upskill pill button */
+.jt-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.9);
+  font-size: 12px;
+  letter-spacing: .2px;
+  cursor: pointer;
+  margin-right: 6px;         
+  outline: none;  
+  transition: transform .06s ease, background .15s ease, border-color .15s ease;
+}
+
+.jt-pill:hover {
+  transform: translateY(-1px);
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.24);
+}
+
+/* Floating Add (+) Button */
+.jt-fab {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.92);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  transition: transform .12s ease, background .15s ease;
+}
+.jt-fab:hover { transform: translateY(-1px) scale(1.02); background: rgba(255,255,255,0.12); }
+
+/* Modal */
+.jt-modal { position: fixed; inset: 0; z-index: 80; pointer-events: none; }
+.jt-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(2px);
+  pointer-events: auto;
+}
+.jt-modal-card {
+  position: absolute; right: 40px; top: 50%;
+  transform: translateY(-50%);
+  width: 360px;
+  background: var(--panel, #11111a);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+  padding: 16px;
+  pointer-events: auto;
+}
+
+.jt-modal-head {
+  font-weight: 600;
+  color: rgba(255,255,255,0.95);
+  margin-bottom: 12px;
+}
+
+/* Simple form layout */
+.jt-form { display: grid; gap: 12px; }
+.jt-form-row { display: grid; gap: 6px; }
+.jt-form-row label { font-size: 12px; color: rgba(255,255,255,0.68); }
+
+.jt-input, .jt-select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.95);
+  padding: 10px 12px;
+  outline: none;
+}
+.jt-input:focus, .jt-select:focus { border-color: rgba(147, 167, 255, 0.5); }
+
+.jt-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+.jt-ghost, .jt-primary {
+  border-radius: 10px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.92);
+  cursor: pointer;
+}
+.jt-primary {
+  background: rgba(147, 167, 255, 0.16);
+  border-color: rgba(147, 167, 255, 0.28);
+}
+.jt-primary:hover { background: rgba(147, 167, 255, 0.22); }
 
