@@ -104,49 +104,56 @@ export default function SkillsPage({ user }) {
 
       {/* Add Skill Modal */}
       {isModalOpen && (
-        <div className="jt-modal">
-          <div className="jt-modal-card">
-            <div className="jt-modal-head">Add Skill</div>
-            <form className="jt-form" onSubmit={addSkill}>
-              <div className="jt-form-row">
-                <label>skill</label>
-                <input
-                  className="jt-input"
-                  placeholder="e.g. python"
-                  value={draft.skill}
-                  onChange={(e) => setDraft((d) => ({ ...d, skill: e.target.value }))}
-                />
-              </div>
+  <div className="jt-modal">
+    {/* Render backdrop first so it stays behind the card */}
+    <div className="jt-backdrop" onClick={() => setIsModalOpen(false)} />
 
-              <div className="jt-form-row">
-                <label>type</label>
-                <select
-                  className="jt-select"
-                  value={draft.type}
-                  onChange={(e) => setDraft((d) => ({ ...d, type: e.target.value }))}
-                >
-                  <option value="">select type…</option>
-                  {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
+    <div className="jt-modal-card">
+      <div className="jt-modal-head">Add Skill</div>
+      <form className="jt-form" onSubmit={addSkill}>
+        <div className="jt-form-row">
+          <label>skill</label>
+          <input
+            className="jt-input"
+            placeholder="e.g. python"
+            value={draft.skill}
+            onChange={(e) => setDraft(d => ({ ...d, skill: e.target.value }))}
+            required
+          />
+        </div>
 
-              <div className="jt-form-row">
-                <label>proficiency level</label>
-                <select
-                  className="jt-select"
-                  value={draft.level}
-                  onChange={(e) => setDraft((d) => ({ ...d, level: e.target.value }))}
-                >
-                  <option value="">select level…</option>
-                  {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
-                </select>
-              </div>
+        <div className="jt-form-row">
+          <label>type</label>
+          <select
+            className="jt-select"
+            value={draft.type}
+            onChange={(e) => setDraft(d => ({ ...d, type: e.target.value }))}
+            required
+          >
+            <option value="">select type…</option>
+            {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
 
-              <div className="jt-modal-actions">
-                <button type="button" className="jt-ghost" onClick={() => setIsModalOpen(false)}>cancel</button>
-                
-                <button type="submit" className="jt-primary">add</button>
-              </div>
+        <div className="jt-form-row">
+          <label>proficiency level</label>
+          <select
+            className="jt-select"
+            value={draft.level}
+            onChange={(e) => setDraft(d => ({ ...d, level: e.target.value }))}
+            required
+          >
+            <option value="">select level…</option>
+            {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+          </select>
+        </div>
+
+        <div className="jt-modal-actions">
+          <button type="button" className="jt-ghost" onClick={() => setIsModalOpen(false)}>
+            cancel
+          </button>
+          <button type="submit" className="jt-primary">add</button>
+        </div>
             </form>
           </div>
 

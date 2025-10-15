@@ -1,4 +1,3 @@
-// src/components/JobTrackerPage.jsx
 import React, { useEffect, useState, useRef } from "react";
 import "../components/job-tracker.css";
 import Sidebar from "../components/sidebar";
