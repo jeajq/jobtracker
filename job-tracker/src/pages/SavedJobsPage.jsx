@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "../components/job-tracker.css";
+import Sidebar from "../components/sidebar";
 import { db } from "../lib/firebase";
 import {
   collection,

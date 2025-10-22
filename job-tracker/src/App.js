@@ -4,6 +4,7 @@ import JobTrackerPage from "./pages/JobTrackerPage";
 import JobSearchPage from "./pages/JobSearchPage";
 import SavedJobsPage from "./pages/SavedJobsPage";
 import EmployerJobsPage from "./pages/EmployerJobsPage";
+import SkillsPage from "./pages/SkillsPage";  
 
 export default function App() {
   const [user, setUser] = useState(null); //logged-in user info
