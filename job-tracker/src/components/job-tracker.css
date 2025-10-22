@@ -89,10 +89,19 @@ body,
 }
 
 /* Main column */
+/* FIX
 .jt-main {
   display: flex;
   flex-direction: column;
   min-width: 0;
+} */
+
+.jt-main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* full viewport height */
+  background-color: var(--bg);
+  overflow: hidden; /* keep main container controlled */
 }
 
 /* Topbar */
@@ -549,5 +558,131 @@ body,
   margin: 2px 0;
 }
 
+/* job search page */
+
+/* Scrollable results 
+.scrollable {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: var(--gap);
+}*/
 
 
+/* Find Jobs button */
+.jt-btn-find {
+  background-color: #4CAF50; /* Green */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.jt-btn-find:hover {
+  background-color: #45a049;
+  transform: scale(1.05);
+}
+
+.jt-btn-find:active {
+  transform: scale(0.98);
+}
+
+
+/* Centered loading */
+.jt-loading-center {
+  height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: var(--text-dim);
+  gap: 1rem;
+}
+
+/* Spinner for loading */
+.jt-spinner {
+  border: 4px solid var(--panel-2);
+  border-top: 4px solid #4a90e2; /* accent color */
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+/* Apply button (primary) */
+.jt-btn-apply {
+  background-color: #4a90e2;
+  color: var(--text);
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  margin-right: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+.jt-btn-apply:hover {
+  background-color: #357abd;
+}
+
+/* Save button (secondary) */
+.jt-btn-save {
+  background-color: var(--panel-2);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.jt-btn-save:hover {
+  background-color: var(--panel);
+  color: var(--text);
+}
+
+.jt-list {
+  list-style: none; /* removes default bullets */
+  padding: 0;
+  margin: 0;
+}
+
+
+/* Optional: add subtle shadow to job items */
+.jt-list-item {
+  background-color: var(--panel-2);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: transform 0.1s ease;
+}
+.jt-list-item:hover {
+  transform: translateY(-2px);
+}
+
+
+.jt-results.scrollable {
+  flex: 1;
+  overflow-y: auto; /* allow scrolling */
+  padding: var(--gap);
+}
+
+/* optional: style scrollbar for dark theme */
+.jt-results.scrollable::-webkit-scrollbar {
+  width: 8px;
+}
+
+.jt-results.scrollable::-webkit-scrollbar-track {
+  background: var(--panel-2);
+}
+
+.jt-results.scrollable::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: var(--radius);
+}

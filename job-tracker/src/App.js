@@ -6,28 +6,34 @@ import SavedJobsPage from "./pages/SavedJobsPage";
 import EmployerJobsPage from "./pages/EmployerJobsPage";
 
 export default function App() {
-  const [user, setUser] = useState(null); // logged-in user info
-  const [tab, setTab] = useState("#board");
+  const [user, setUser] = useState(null); //logged-in user info
+  const [tab, setTab] = useState("");
 
   useEffect(() => {
-    const onHashChange = () => setTab(window.location.hash || "#board");
+    const onHashChange = () => setTab(window.location.hash || "");
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
   if (!user) return <Login onLogin={(userData) => setUser(userData)} />;
 
-  // Render employer-specific page
+  //EMPLOYER
   if (user.type === "employer") {
-    if (tab === "#employer-jobs") return <EmployerJobsPage user={user} />;
-    if (tab === "#search") return <JobSearchPage user={user} />;
-    if (tab === "#saved") return <SavedJobsPage user={user} />;
-    return <JobTrackerPage user={user} />; // employer dashboard
+    //redirects employers to their jobs page
+    if (tab !== "#employer-jobs") {
+      window.location.hash = "#employer-jobs";
+      setTab("#employer-jobs");
+    }
+    return <EmployerJobsPage user={user} />;
   }
 
-  // Normal user routes
-  if (tab === "#search") return <JobSearchPage user={user} />;
-  if (tab === "#saved") return <SavedJobsPage user={user} />;
-  return <JobTrackerPage user={user} />; // user dashboard
-  
+  //NORMAL USER
+  switch (tab) {
+    case "#search":
+      return <JobSearchPage user={user} />;
+    case "#saved":
+      return <SavedJobsPage user={user} />;
+    default:
+      return <JobTrackerPage user={user} />;
+  }
 }

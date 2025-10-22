@@ -1,142 +1,124 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "../components/job-tracker.css";
+import axios from "axios";
 import { db } from "../lib/firebase";
-import {
-  addDoc, collection, serverTimestamp,
-} from "firebase/firestore";
-
-// --- mock dataset until real API connection ---
-const MOCK_JOBS = [
-  {
-    id: "m1",
-    title: "UI/UX Developer",
-    company: "Globex",
-    role: "Designer / Frontend",
-    description: "Design system, Figma, React",
-    datePosted: "2025-08-01",
-    industry: "Software",
-    location: "Sydney",
-    url: "https://example.com/jobs/uxui-dev",
-  },
-  {
-    id: "m2",
-    title: "Frontend Engineer",
-    company: "Acme",
-    role: "React",
-    description: "React, TypeScript, CSS",
-    datePosted: "2025-08-15",
-    industry: "Software",
-    location: "Remote",
-    url: "https://example.com/jobs/frontend",
-  },
-  {
-    id: "m3",
-    title: "Junior QA Tester",
-    company: "Umbrella",
-    role: "QA",
-    description: "Cypress / Playwright",
-    datePosted: "2025-07-20",
-    industry: "Software",
-    location: "Melbourne",
-    url: "https://example.com/jobs/qa",
-  },
-];
+import { addDoc, collection, serverTimestamp, writeBatch, doc } from "firebase/firestore";
 
 export default function JobSearchPage({ user }) {
   const [query, setQuery] = useState("");
-  const [industry, setIndustry] = useState("");
-  const [location, setLocation] = useState("");
+  const [location] = useState("Australia");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // fake “search” over MOCK_JOBS until API is connected
-  const filteredMock = useMemo(() => {
-    const q = query.toLowerCase();
-    return MOCK_JOBS.filter(j =>
-      (!q || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q) || j.role.toLowerCase().includes(q) || j.description.toLowerCase().includes(q)) &&
-      (!industry || j.industry === industry) &&
-      (!location || j.location.toLowerCase().includes(location.toLowerCase()))
-    );
-  }, [query, industry, location]);
+  const BASE_URL = "http://localhost:5000/api/jobs";
+
+  async function fetchJobs() {
+    if (!query) {
+      alert("Please enter a search query.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await axios.get(BASE_URL, { params: { q: query, loc: location } });
+      const scrapedResults = response.data || [];
+      const formatted = scrapedResults.map((job, idx) => ({
+        id: idx,
+        title: job.title,
+        company: job.company,
+        location: job.location || location,
+        url: job.link,
+        datePosted: "N/A",
+        role: "N/A",
+        description: "Click to view full listing.",
+      }));
+      setResults(formatted);
+      saveJobsToFirestore(formatted);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function saveJob(job, userId) {
+    if (!userId) return;
+    try {
+      await addDoc(collection(db, "users", userId, "saved_jobs"), {
+        ...job,
+        savedAt: serverTimestamp(),
+      });
+      alert("Job saved successfully!");
+    } catch (err) {
+      console.error("Error saving job:", err);
+    }
+  }
+
+  async function saveJobsToFirestore(jobs) {
+    try {
+      const batch = writeBatch(db);
+      const collectionRef = collection(db, "jobs");
+      jobs.forEach((job) => batch.set(doc(collectionRef), { ...job, savedAt: serverTimestamp() }));
+      await batch.commit();
+    } catch (err) {
+      console.error("Error saving jobs in batch:", err);
+    }
+  }
 
   function runSearch(e) {
     e?.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
-      setResults(filteredMock);
-      setLoading(false);
-    }, 350);
+    fetchJobs();
   }
 
-  async function saveJob(job) {
-    await addDoc(collection(db, "saved_jobs"), {
-      ...job,
-      savedAt: serverTimestamp(),
-    });
-  }
-
-  useEffect(() => {
-    setResults([]);
-  }, []);
+  useEffect(() => setResults([]), []);
 
   return (
     <div className="jt-app">
       <aside className="jt-sidebar">
-          <div className="jt-logo">job.tracker</div>
-            <nav className="jt-nav">
-              <a className="jt-nav-item active" href="#board"><span>Job Board</span></a>
-              <a className="jt-nav-item" href="#search"><span>Job Search</span></a>
-              <a className="jt-nav-item" href="#saved"><span>Saved Jobs</span></a>
-
-              {/* Only show for employers */}
-              {user?.type === "employer" && (
-                  <a className="jt-nav-item" href="#employer-jobs"><span>View Added Jobs</span></a>
-              )}
-            </nav>
-          <div className="jt-logout">Log Out ⟶</div>
-        </aside>
+        <div className="jt-logo">job.tracker</div>
+        <nav className="jt-nav">
+          <a className="jt-nav-item" href="#board">
+            <span>Job Board</span>
+          </a>
+          <a className="jt-nav-item active" href="#search">
+            <span>Job Search</span>
+          </a>
+          <a className="jt-nav-item" href="#saved">
+            <span>Saved Jobs</span>
+          </a>
+        </nav>
+        <div className="jt-logout">Log Out ⟶</div>
+      </aside>
 
       <main className="jt-main">
         <header className="jt-topbar jt-topbar--search">
           <form onSubmit={runSearch} className="jt-search-row">
             <input
               className="jt-search"
-              placeholder=".search jobs"
+              placeholder="Search jobs..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            <select
-              className="jt-chip-select"
-              value={industry}
-              onChange={(e) => setIndustry(e.target.value)}
-            >
-              <option value="">.what industry</option>
-              <option>Software</option>
-              <option>Finance</option>
-              <option>Retail</option>
-            </select>
-            <input
-              className="jt-chip-input"
-              placeholder=".where"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-            />
-            <button className="jt-primary" type="submit">find jobs</button>
+            <button className="jt-btn-find" type="submit">Find Jobs</button>
           </form>
         </header>
 
-        <section className="jt-results">
-          {loading && <div className="jt-empty">searching…</div>}
+        <section className="jt-results scrollable">
+          {loading && (
+            <div className="jt-loading-center">
+              <div className="jt-spinner"></div>
+              <div>searching jobs…</div>
+            </div>
+          )}
           {!loading && results.length === 0 && (
             <div className="jt-empty-center">
-            <div>nothing here!</div>
-            <button className="jt-primary" onClick={runSearch}>find jobs</button>
-         </div>
-        )}
-
+              <div>nothing here!</div>
+              <button className="jt-primary" onClick={runSearch}>find jobs</button>
+            </div>
+          )}
           {!loading && results.length > 0 && (
             <>
-              <div className="jt-results-head">Results found</div>
+              <div className="jt-results-head">Results found ({results.length})</div>
               <ul className="jt-list">
                 {results.map((job) => (
                   <li className="jt-list-item" key={job.id}>
@@ -150,10 +132,10 @@ export default function JobSearchPage({ user }) {
                       <div className="jt-desc">{job.description}</div>
                     </div>
                     <div className="jt-meta">
-                      <span className="jt-date">date posted: {job.datePosted || "00/00/0000"}</span>
+                      <span className="jt-date">date posted: {job.datePosted}</span>
                       <div className="jt-actions">
-                        <button className="jt-ghost" onClick={() => window.open(job.url, "_blank")}>Apply</button>
-                        <button className="jt-icon" title="Save" onClick={() => saveJob(job)}>💾</button>
+                        <button className="jt-btn-apply" onClick={() => window.open(job.url, "_blank")}>Apply</button>
+                        <button className="jt-btn-save" title="Save" onClick={() => saveJob(job, user?.uid)}>💾 Save</button>
                       </div>
                     </div>
                   </li>
