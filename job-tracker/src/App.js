@@ -4,37 +4,50 @@ import JobTrackerPage from "./pages/JobTrackerPage";
 import JobSearchPage from "./pages/JobSearchPage";
 import SavedJobsPage from "./pages/SavedJobsPage";
 import EmployerJobsPage from "./pages/EmployerJobsPage";
-import SkillsPage from "./pages/SkillsPage";  
+import SkillsPage from "./pages/SkillsPage";
 
 export default function App() {
-  const [user, setUser] = useState(null); //logged-in user info
-  const [tab, setTab] = useState("");
+  const [user, setUser] = useState(null); // logged-in user info
+  const [tab, setTab] = useState(window.location.hash || "#board");
 
+  // track hash changes
   useEffect(() => {
-    const onHashChange = () => setTab(window.location.hash || "");
+    const onHashChange = () => setTab(window.location.hash || "#board");
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  if (!user) return <Login onLogin={(userData) => setUser(userData)} />;
+  // when user not logged in
+  if (!user) {
+    return <Login onLogin={(userData) => setUser(userData)} />;
+  }
 
-  //EMPLOYER
-  if (user.type === "employer") {
-    //redirects employers to their jobs page
+  // ensure user object always has an ID (uid or doc id)
+  const userWithId = {
+    ...user,
+    id: user.id || user.uid || null,
+  };
+
+  // handle employer view safely
+  if (userWithId.type === "employer") {
+    // redirect once only, not on every render
     if (tab !== "#employer-jobs") {
       window.location.hash = "#employer-jobs";
       setTab("#employer-jobs");
+      return null; // prevent flicker while redirecting
     }
-    return <EmployerJobsPage user={user} />;
+    return <EmployerJobsPage user={userWithId} />;
   }
 
-  //NORMAL USER
+  // switch for normal user
   switch (tab) {
     case "#search":
-      return <JobSearchPage user={user} />;
+      return <JobSearchPage user={userWithId} />;
     case "#saved":
-      return <SavedJobsPage user={user} />;
+      return <SavedJobsPage user={userWithId} />;
+    case "#skills":
+      return <SkillsPage user={userWithId} />;
     default:
-      return <JobTrackerPage user={user} />;
+      return <JobTrackerPage user={userWithId} />;
   }
 }
