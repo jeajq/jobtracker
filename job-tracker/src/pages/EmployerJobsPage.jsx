@@ -65,7 +65,7 @@ export default function EmployerJobsPage({ user, navigate }) {
           )}
         </section>
 
-        {/* Add job popup */}
+        {/* job added popup */}
         {showAddJob && (
           <AddJob
             user={user}
