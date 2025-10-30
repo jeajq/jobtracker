@@ -3,14 +3,21 @@ import React from "react";
 import JobCard from "./JobCard";
 
 export default function JobColumn({
-  id, title, cards, count,
-  onDragStart, onDropBefore, onDropEnd
+  id,
+  title,
+  cards,
+  count,
+  onDragStart,
+  onDropBefore,
+  onDropEnd,
+  onDelete,
+  onAddNote,
 }) {
   return (
     <div
       className="jt-column"
       onDragOver={(e) => e.preventDefault()}
-      onDrop={(e) => onDropEnd(e)}
+      onDrop={(e) => onDropEnd(e)} // drop to END of this column
     >
       <div className="jt-col-head">
         <div className="jt-col-title">
@@ -19,23 +26,34 @@ export default function JobColumn({
       </div>
 
       <div className="jt-cards" role="list">
-        {cards.map((card, idx) => (
-          <React.Fragment key={card.id}>
-            <div
-              className="jt-drop"
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.stopPropagation(); 
-                onDropBefore(idx, e);
-              }}
-            />
-            <JobCard data={card} onDragStart={(e) => onDragStart(id, idx, e)} />
-          </React.Fragment>
-        ))}
+        {cards
+          .filter(Boolean) // ignore null/undefined entries
+          .map((card, idx) => (
+            <React.Fragment key={card.id}>
+              {/* drop zone BEFORE this card */}
+              <div
+                className="jt-drop"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.stopPropagation(); // don't bubble to column onDrop
+                  onDropBefore(idx, e);
+                }}
+              />
+
+              <JobCard
+                job={card}
+                onDragStart={(e) => onDragStart(id, idx, e)}
+                onDelete={(jobId) => onDelete(jobId)}
+                onAddNote={(jobId, noteText) => onAddNote(jobId, noteText)}
+              />
+            </React.Fragment>
+          ))}
+
+        {/* final drop zone for dropping to END of column */}
         <div
           className="jt-drop"
           onDragOver={(e) => e.preventDefault()}
-          onDrop={onDropEnd}  // end-drop only
+          onDrop={onDropEnd}
         />
       </div>
     </div>

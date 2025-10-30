@@ -1,4 +1,4 @@
-// src/components/JobTrackerPage.jsx
+// src/pages/JobTrackerPage.jsx
 import React, { useEffect, useState, useRef } from "react";
 import "../components/job-tracker.css";
 import Sidebar from "../components/sidebar.jsx";
@@ -12,8 +12,9 @@ import {
   orderBy,
   writeBatch,
   doc,
-  //updateDoc,
+  updateDoc,
   serverTimestamp,
+  deleteDoc,
 } from "firebase/firestore";
 
 const COLUMNS = [
@@ -26,14 +27,18 @@ const COLUMNS = [
 
 export default function JobTrackerPage({ user }) {
   const [board, setBoard] = useState({
-    applied: [], assessment: [], interview: [], offer: [], rejected: []
+    applied: [],
+    assessment: [],
+    interview: [],
+    offer: [],
+    rejected: [],
   });
   const [search, setSearch] = useState("");
 
   const dragRef = useRef({ colId: null, index: null });
   const isUpdating = useRef(false);
 
-  // --- live subscriptions per column ---
+  // live snapshot per column
   useEffect(() => {
     const unsubs = COLUMNS.map(({ id }) => {
       const q = query(
@@ -45,7 +50,7 @@ export default function JobTrackerPage({ user }) {
       return onSnapshot(
         q,
         (snap) => {
-          if (isUpdating.current) return;
+          if (isUpdating.current) return; // avoid flicker during reorder
           const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
           setBoard((prev) => ({ ...prev, [id]: rows }));
         },
@@ -53,32 +58,17 @@ export default function JobTrackerPage({ user }) {
       );
     });
 
-    return () => unsubs.forEach((u) => u());
+    return () => unsubs.forEach((u) => u && u());
   }, []);
 
-  // ---------- DnD handlers ----------
+  // drag start
   function handleDragStart(colId, index, e) {
     dragRef.current = { colId, index };
     e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", `${colId}:${index}`);
+    e.dataTransfer.setData("text/plain", `${colId}:${index}`); // firefox safety
   }
 
-/*   async function persistReorder(fromColId, toColId, nextBoardState) {
-    const batch = writeBatch(db);
-    const colsToWrite = new Set([fromColId, toColId]);
-
-    colsToWrite.forEach((colId) => {
-      nextBoardState[colId].forEach((card, idx) => {
-        const ref = doc(db, "jobs", card.id);
-        const payload = { order: idx, updatedAt: serverTimestamp() };
-        if (card.status !== colId) payload.status = colId;
-        batch.update(ref, payload);
-      });
-    });
-
-    await batch.commit();
-  } */
-
+  // drop BEFORE a specific index
   function handleDropToPosition(targetColId, targetIndex, e) {
     e.preventDefault();
     e.stopPropagation();
@@ -86,7 +76,7 @@ export default function JobTrackerPage({ user }) {
     const { colId: fromColId, index: fromIndex } = dragRef.current || {};
     if (fromColId == null || fromIndex == null) return;
 
-    // same column, no real change — ignore
+    // no-op drag (drop in same spot)
     if (
       fromColId === targetColId &&
       (fromIndex === targetIndex || fromIndex + 1 === targetIndex)
@@ -95,7 +85,7 @@ export default function JobTrackerPage({ user }) {
       return;
     }
 
-    setBoard(prev => {
+    setBoard((prev) => {
       const next = structuredClone(prev);
       const fromCards = next[fromColId];
       const toCards = next[targetColId];
@@ -104,8 +94,8 @@ export default function JobTrackerPage({ user }) {
 
       const [moved] = fromCards.splice(fromIndex, 1);
 
-      // prevent accidental duplicate (same object reference still present)
-      if (toCards.some(c => c.id === moved.id)) return prev;
+      // don't insert if it's somehow already in toCards
+      if (toCards.some((c) => c.id === moved.id)) return prev;
 
       moved.status = targetColId;
 
@@ -116,12 +106,12 @@ export default function JobTrackerPage({ user }) {
 
       toCards.splice(insertIndex, 0, moved);
 
-      // persist both columns' order + status
+      // persist new order for both affected columns
       isUpdating.current = true;
       const batch = writeBatch(db);
       const updateCols = new Set([fromColId, targetColId]);
 
-      updateCols.forEach(cid => {
+      updateCols.forEach((cid) => {
         next[cid].forEach((card, idx) => {
           const ref = doc(db, "jobs", card.id);
           batch.update(ref, {
@@ -143,6 +133,7 @@ export default function JobTrackerPage({ user }) {
     dragRef.current = { colId: null, index: null };
   }
 
+  // drop to END of a column
   function handleDropToEnd(toColId, e) {
     e.preventDefault();
     e.stopPropagation();
@@ -150,7 +141,7 @@ export default function JobTrackerPage({ user }) {
     const { colId: fromColId, index: fromIndex } = dragRef.current || {};
     if (fromColId == null || fromIndex == null) return;
 
-    setBoard(prev => {
+    setBoard((prev) => {
       const next = structuredClone(prev);
       const fromCards = next[fromColId];
       const toCards = next[toColId];
@@ -159,16 +150,18 @@ export default function JobTrackerPage({ user }) {
 
       const [moved] = fromCards.splice(fromIndex, 1);
 
-      if (toCards.some(c => c.id === moved.id)) return prev;
+      // skip duplicate if already in target col
+      if (toCards.some((c) => c.id === moved.id)) return prev;
 
       moved.status = toColId;
       toCards.push(moved);
 
+      // persist new order for both cols
       isUpdating.current = true;
       const batch = writeBatch(db);
       const updateCols = new Set([fromColId, toColId]);
 
-      updateCols.forEach(cid => {
+      updateCols.forEach((cid) => {
         next[cid].forEach((card, idx) => {
           const ref = doc(db, "jobs", card.id);
           batch.update(ref, {
@@ -190,7 +183,47 @@ export default function JobTrackerPage({ user }) {
     dragRef.current = { colId: null, index: null };
   }
 
-  // ---------- search helper ----------
+  // delete job locally after Firestore delete (Firestore snapshot will also catch up)
+  async function handleDeleteJob(id) {
+    // remove immediately from UI so it feels snappy:
+    setBoard((prev) => {
+      const next = { ...prev };
+      for (const col in next) {
+        next[col] = next[col].filter((j) => j.id !== id);
+      }
+      return next;
+    });
+
+    // also delete in Firestore to make it permanent
+    await deleteDoc(doc(db, "jobs", id));
+  }
+
+  // save note locally AND in Firestore
+  async function handleSaveNote(jobId, noteText) {
+    // optimistic UI update
+    setBoard((prev) => {
+      const next = structuredClone(prev);
+      for (const col in next) {
+        next[col] = next[col].map((j) =>
+          j.id === jobId ? { ...j, note: noteText } : j
+        );
+      }
+      return next;
+    });
+
+    // persist to Firestore
+    try {
+      await updateDoc(doc(db, "jobs", jobId), {
+        note: noteText,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      console.error("note save failed:", err);
+      alert("Couldn't save note");
+    }
+  }
+
+  // search filter
   const filtered = (cards) => {
     const q = search.trim().toLowerCase();
     if (!q) return cards;
@@ -213,11 +246,13 @@ export default function JobTrackerPage({ user }) {
             className="jt-search"
             placeholder="Search jobs..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
           />
           <div className="jt-topbar-actions">
             <div className="jt-avatar" title="Profile" />
-            <div className="jt-gear" title="Settings">⚙︎</div>
+            <div className="jt-gear" title="Settings">
+              ⚙︎
+            </div>
           </div>
         </header>
 
@@ -231,7 +266,9 @@ export default function JobTrackerPage({ user }) {
               count={board[id].length}
               onDragStart={handleDragStart}
               onDropBefore={(index, e) => handleDropToPosition(id, index, e)}
-              onDropEnd={e => handleDropToEnd(id, e)}
+              onDropEnd={(e) => handleDropToEnd(id, e)}
+              onDelete={handleDeleteJob}
+              onAddNote={handleSaveNote}
             />
           ))}
         </section>

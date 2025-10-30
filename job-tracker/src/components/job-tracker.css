@@ -5,7 +5,7 @@
 :root {
   --bg: #22212b;
   --sidebar: #2a2933;
-  --panel: ##11111a;
+  --panel: #11111a;
   --panel-2: #262433;
   --border: #3b3948;
   --text: #ececf3;
@@ -700,4 +700,129 @@ body,
 
 .jt-btn-red:hover {
   background-color: #e04343;
+}
+
+/* Job Card layout */
+.jt-card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+  cursor: grab;
+  transition: background 0.2s;
+}
+
+.jt-card:hover {
+  background: var(--panel-hover);
+}
+
+/* Top header row */
+.jt-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.jt-card-title {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Status color dots */
+.jt-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.jt-dot.blue { background: #5b8cff; }
+.jt-dot.purple { background: #a88cff; }
+.jt-dot.green { background: #4fd66e; }
+.jt-dot.pink { background: #ff6fa5; }
+.jt-dot.red { background: #ff4d4d; }
+
+/* Secondary info lines */
+.jt-field {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.jt-description {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.jt-date {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* Note styles */
+.jt-note {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.jt-note-edit textarea {
+  width: 100%;
+  background: var(--panel-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 6px;
+  resize: none;
+  min-height: 60px;
+}
+
+.jt-note-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* Footer buttons */
+.jt-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.jt-pill {
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: 999px;
+  font-size: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.jt-btn-red {
+  border-color: #ff7b7b;
+  color: #ff7b7b;
+}
+
+.jt-primary {
+  background: var(--accent);
+  border: none;
+  color: white;
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+
+.jt-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 6px 12px;
 }
