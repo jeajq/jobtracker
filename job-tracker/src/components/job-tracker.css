@@ -826,3 +826,202 @@ body,
   border-radius: 8px;
   padding: 6px 12px;
 }
+
+/* =========================
+   Skills Page Layout
+========================= */
+
+/* Surface card around the table */
+.jt-surface {
+  background: var(--panel, #11111a);
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+  padding: 16px 10px 10px;
+  margin: 16px 16px 24px;
+  border: 1px solid rgba(255,255,255,0.04);
+  overflow: hidden;
+}
+
+.jt-surface-head {
+  font-weight: 600;
+  letter-spacing: .2px;
+  margin: 2px 0 12px;
+  color: rgba(255,255,255,0.9);
+}
+
+/* Skills table */
+.jt-table {
+  width: 100%;
+  padding: 0 6px 8px;
+}
+
+.jt-tr {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  margin: 8px 6px;
+}
+
+.jt-tr--head {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.65);
+  text-transform: lowercase;
+  font-size: 13px;
+  letter-spacing: .3px;
+  margin: 0 6px 8px;
+}
+
+.jt-td {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: rgba(255,255,255,0.9);
+}
+
+.jt-td .jt-link {
+  font-weight: 600;
+}
+
+/* width helpers */
+.w-40 { flex: 0 0 40%; }
+.w-30 { flex: 0 0 30%; }
+.w-20 { flex: 0 0 15%; }
+.w-10 { flex: 0 0 10%; }
+.ta-right { text-align: right; }
+
+/* caret in headers */
+.jt-sort {
+  opacity: .7;
+  margin-right: 6px;
+}
+
+/* badges + tags (skills type and level chips) */
+.jt-badge,
+.jt-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.jt-badge {
+  background: rgba(147, 167, 255, 0.16);
+  border: 1px solid rgba(147, 167, 255, 0.25);
+  color: rgba(215, 222, 255, 0.9);
+}
+
+.jt-tag {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Floating Add (+) Button */
+.jt-fab {
+  position: fixed;
+  right: 40px;
+  bottom: 30px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: #2b2b3b;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  transition: transform 0.12s ease, background 0.15s ease;
+  z-index: 100; 
+}
+.jt-fab:hover {
+  transform: translateY(-2px);
+  background: #3c3c4f;
+}
+
+/* Add Skill Modal */
+.jt-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+}
+
+.jt-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  z-index: 0;
+  pointer-events: auto;
+}
+
+.jt-modal-card {
+  position: absolute;
+  right: 40px;
+  top: 65%;
+  transform: translateY(-50%);
+  width: 380px;
+  background: #1c1c28;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  padding: 20px;
+  z-index: 1;
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.jt-modal-head {
+  font-weight: 600;
+  color: rgba(255,255,255,0.95);
+  margin-bottom: 12px;
+}
+
+/* Form */
+.jt-form {
+  display: grid;
+  gap: 12px;
+}
+
+.jt-form-row {
+  display: grid;
+  gap: 6px;
+}
+
+.jt-form-row label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.68);
+}
+
+.jt-input,
+.jt-select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.95);
+  padding: 10px 12px;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.jt-input:focus,
+.jt-select:focus {
+  border-color: rgba(147, 167, 255, 0.5);
+}
+
+.jt-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
