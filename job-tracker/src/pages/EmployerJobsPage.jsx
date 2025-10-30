@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
+import Sidebar from "../components/sidebar";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import "../components/job-tracker.css";
 import AddJob from "./AddJob.jsx";
@@ -28,15 +29,7 @@ export default function EmployerJobsPage({ user, navigate }) {
 
   return (
     <div className="jt-app">
-      <aside className="jt-sidebar">
-        <div className="jt-logo">job.tracker</div>
-        <nav className="jt-nav">
-          <a className="jt-nav-item active" href="#employer-jobs">
-            <span>View Added Jobs</span>
-          </a>
-        </nav>
-        <div className="jt-logout">Log Out ⟶</div>
-      </aside>
+       <Sidebar user={user}/>
 
       <main className="jt-main">
         <header className="jt-topbar">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../components/job-tracker.css";
+import Sidebar from "../components/sidebar";
 import axios from "axios";
 import { db } from "../lib/firebase";
 import { addDoc, collection, serverTimestamp, writeBatch, doc } from "firebase/firestore";
@@ -74,21 +75,7 @@ export default function JobSearchPage({ user }) {
 
   return (
     <div className="jt-app">
-      <aside className="jt-sidebar">
-        <div className="jt-logo">job.tracker</div>
-        <nav className="jt-nav">
-          <a className="jt-nav-item" href="#board">
-            <span>Job Board</span>
-          </a>
-          <a className="jt-nav-item active" href="#search">
-            <span>Job Search</span>
-          </a>
-          <a className="jt-nav-item" href="#saved">
-            <span>Saved Jobs</span>
-          </a>
-        </nav>
-        <div className="jt-logout">Log Out ⟶</div>
-      </aside>
+       <Sidebar user={user}/>
 
       <main className="jt-main">
         <header className="jt-topbar jt-topbar--search">

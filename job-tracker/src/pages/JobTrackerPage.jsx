@@ -1,6 +1,7 @@
 // src/components/JobTrackerPage.jsx
 import React, { useEffect, useState, useRef } from "react";
 import "../components/job-tracker.css";
+import Sidebar from "../components/sidebar.jsx";
 import JobColumn from "../components/JobColumn.jsx";
 import { db } from "../lib/firebase.js";
 import {
@@ -162,52 +163,39 @@ export default function JobTrackerPage({ user }) {
         );
     };
 
-    return (
-        <div className="jt-app">
-            <aside className="jt-sidebar">
-                <div className="jt-logo">job.tracker</div>
-                <nav className="jt-nav">
-                    <a className="jt-nav-item active" href="#board"><span>Job Board</span></a>
-                    <a className="jt-nav-item" href="#search"><span>Job Search</span></a>
-                    <a className="jt-nav-item" href="#saved"><span>Saved Jobs</span></a>
+ return (
+    <div className="jt-app">
+      <Sidebar user={user}/>
 
-                    {/* Only show for employers */}
-                    {user?.type === "employer" && (
-                        <a className="jt-nav-item" href="#employer-jobs"><span>View Added Jobs</span></a>
-                    )}
-                </nav>
-                <div className="jt-logout">Log Out ⟶</div>
-            </aside>
+      <main className="jt-main">
+        <header className="jt-topbar">
+          <input
+            className="jt-search"
+            placeholder="Search jobs..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          <div className="jt-topbar-actions">
+            <div className="jt-avatar" title="Profile" />
+            <div className="jt-gear" title="Settings">⚙︎</div>
+          </div>
+        </header>
 
-            <main className="jt-main">
-                <header className="jt-topbar">
-                    <input
-                        className="jt-search"
-                        placeholder="Search jobs..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                    <div className="jt-topbar-actions">
-                        <div className="jt-avatar" title="Profile" />
-                        <div className="jt-gear" title="Settings">⚙︎</div>
-                    </div>
-                </header>
-
-                <section className="jt-board">
-                    {COLUMNS.map(({ id, label }) => (
-                        <JobColumn
-                            key={id}
-                            id={id}
-                            title={label}
-                            cards={filtered(board[id])}
-                            count={board[id].length}
-                            onDragStart={handleDragStart}
-                            onDropBefore={(index, e) => handleDropToPosition(id, index, e)}
-                            onDropEnd={(e) => handleDropToEnd(id, e)}
-                        />
-                    ))}
-                </section>
-            </main>
-        </div>
-    );
+        <section className="jt-board">
+          {COLUMNS.map(({ id, label }) => (
+            <JobColumn
+              key={id}
+              id={id}
+              title={label}
+              cards={filtered(board[id])}
+              count={board[id].length}
+              onDragStart={handleDragStart}
+              onDropBefore={(index, e) => handleDropToPosition(id, index, e)}
+              onDropEnd={e => handleDropToEnd(id, e)}
+            />
+          ))}
+        </section>
+      </main>
+    </div>
+  );
 }
