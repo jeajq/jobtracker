@@ -5,167 +5,207 @@ import Sidebar from "../components/sidebar.jsx";
 import JobColumn from "../components/JobColumn.jsx";
 import { db } from "../lib/firebase.js";
 import {
-    collection,
-    onSnapshot,
-    query,
-    where,
-    orderBy,
-    writeBatch,
-    doc,
-    updateDoc,
-    serverTimestamp,
+  collection,
+  onSnapshot,
+  query,
+  where,
+  orderBy,
+  writeBatch,
+  doc,
+  //updateDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 
 const COLUMNS = [
-    { id: "applied", label: "Applied" },
-    { id: "assessment", label: "Assessment" },
-    { id: "interview", label: "Interview" },
-    { id: "offer", label: "Offer" },
-    { id: "rejected", label: "Rejected" },
+  { id: "applied", label: "Applied" },
+  { id: "assessment", label: "Assessment" },
+  { id: "interview", label: "Interview" },
+  { id: "offer", label: "Offer" },
+  { id: "rejected", label: "Rejected" },
 ];
 
 export default function JobTrackerPage({ user }) {
-    const [board, setBoard] = useState({
-        applied: [], assessment: [], interview: [], offer: [], rejected: []
+  const [board, setBoard] = useState({
+    applied: [], assessment: [], interview: [], offer: [], rejected: []
+  });
+  const [search, setSearch] = useState("");
+
+  const dragRef = useRef({ colId: null, index: null });
+  const isUpdating = useRef(false);
+
+  // --- live subscriptions per column ---
+  useEffect(() => {
+    const unsubs = COLUMNS.map(({ id }) => {
+      const q = query(
+        collection(db, "jobs"),
+        where("status", "==", id),
+        orderBy("order", "asc")
+      );
+
+      return onSnapshot(
+        q,
+        (snap) => {
+          if (isUpdating.current) return;
+          const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          setBoard((prev) => ({ ...prev, [id]: rows }));
+        },
+        (err) => console.error(`[JT] onSnapshot error for ${id}:`, err)
+      );
     });
-    const [search, setSearch] = useState("");
 
-    const dragRef = useRef({ colId: null, index: null });
-    const isUpdating = useRef(false);
+    return () => unsubs.forEach((u) => u());
+  }, []);
 
-    // --- live subscriptions per column ---
-    useEffect(() => {
-        const unsubs = COLUMNS.map(({ id }) => {
-            const q = query(
-                collection(db, "jobs"),
-                where("status", "==", id),
-                orderBy("order", "asc")
-            );
+  // ---------- DnD handlers ----------
+  function handleDragStart(colId, index, e) {
+    dragRef.current = { colId, index };
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", `${colId}:${index}`);
+  }
 
-            return onSnapshot(
-                q,
-                (snap) => {
-                    if (isUpdating.current) return; 
-                    const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-                    setBoard((prev) => ({ ...prev, [id]: rows }));
-                },
-                (err) => console.error(`[JT] onSnapshot error for ${id}:`, err)
-            );
-        });
+/*   async function persistReorder(fromColId, toColId, nextBoardState) {
+    const batch = writeBatch(db);
+    const colsToWrite = new Set([fromColId, toColId]);
 
-        return () => unsubs.forEach((u) => u());
-    }, []);
+    colsToWrite.forEach((colId) => {
+      nextBoardState[colId].forEach((card, idx) => {
+        const ref = doc(db, "jobs", card.id);
+        const payload = { order: idx, updatedAt: serverTimestamp() };
+        if (card.status !== colId) payload.status = colId;
+        batch.update(ref, payload);
+      });
+    });
 
-    // ---------- DnD handlers ----------
-    function handleDragStart(colId, index, e) {
-        dragRef.current = { colId, index };
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", `${colId}:${index}`);
+    await batch.commit();
+  } */
+
+  function handleDropToPosition(targetColId, targetIndex, e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const { colId: fromColId, index: fromIndex } = dragRef.current || {};
+    if (fromColId == null || fromIndex == null) return;
+
+    // same column, no real change — ignore
+    if (
+      fromColId === targetColId &&
+      (fromIndex === targetIndex || fromIndex + 1 === targetIndex)
+    ) {
+      dragRef.current = { colId: null, index: null };
+      return;
     }
 
-    async function persistReorder(fromColId, toColId, nextBoardState) {
-        const batch = writeBatch(db);
-        const colsToWrite = new Set([fromColId, toColId]);
+    setBoard(prev => {
+      const next = structuredClone(prev);
+      const fromCards = next[fromColId];
+      const toCards = next[targetColId];
 
-        colsToWrite.forEach((colId) => {
-            nextBoardState[colId].forEach((card, idx) => {
-                const ref = doc(db, "jobs", card.id);
-                const payload = { order: idx, updatedAt: serverTimestamp() };
-                if (card.status !== colId) payload.status = colId;
-                batch.update(ref, payload);
-            });
-        });
+      if (!fromCards[fromIndex]) return prev;
 
-        await batch.commit();
-    }
+      const [moved] = fromCards.splice(fromIndex, 1);
 
-    function handleDropToPosition(targetColId, targetIndex, e) {
-        e.preventDefault();
-        e.stopPropagation(); 
+      // prevent accidental duplicate (same object reference still present)
+      if (toCards.some(c => c.id === moved.id)) return prev;
 
-        const { colId: fromColId, index: fromIndex } = dragRef.current || {};
-        if (fromColId == null || fromIndex == null) return;
-  
-        if (
-            fromColId === targetColId &&
-            (fromIndex === targetIndex || fromIndex + 1 === targetIndex)
-        ) {
-            dragRef.current = { colId: null, index: null };
-            return;
-        }
+      moved.status = targetColId;
 
-        setBoard(prev => {
-            const next = structuredClone(prev);
-            const [moved] = next[fromColId].splice(fromIndex, 1);
+      const insertIndex =
+        fromColId === targetColId && fromIndex < targetIndex
+          ? targetIndex - 1
+          : targetIndex;
 
-            const insertIndex =
-                fromColId === targetColId && fromIndex < targetIndex
-                    ? targetIndex - 1
-                    : targetIndex;
+      toCards.splice(insertIndex, 0, moved);
 
-            moved.status = targetColId;
-            next[targetColId].splice(insertIndex, 0, moved);
+      // persist both columns' order + status
+      isUpdating.current = true;
+      const batch = writeBatch(db);
+      const updateCols = new Set([fromColId, targetColId]);
 
-            isUpdating.current = true;
-            persistReorder(fromColId, targetColId, next)
-                .catch(console.error)
-                .finally(() => setTimeout(() => (isUpdating.current = false), 300));
-
-            return next;
-        });
-
-        dragRef.current = { colId: null, index: null };
-    }
-
-    function handleDropToEnd(toColId, e) {
-        e.preventDefault();
-
-        const { colId: fromColId, index } = dragRef.current || {};
-        if (fromColId == null || index == null) return;
-
-        if (fromColId === toColId && index === board[toColId].length - 1) {
-            dragRef.current = { colId: null, index: null };
-            return;
-        }
-
-        const moved = board[fromColId][index];
-        if (!moved) return;
-
-        const next = {
-            ...board,
-            [fromColId]: board[fromColId].filter((_, i) => i !== index),
-            [toColId]: [...board[toColId], { ...moved, status: toColId }],
-        };
-        setBoard(next);
-
-        isUpdating.current = true;
-        updateDoc(doc(db, "jobs", moved.id), {
-            status: toColId,
-            order: next[toColId].length - 1,
+      updateCols.forEach(cid => {
+        next[cid].forEach((card, idx) => {
+          const ref = doc(db, "jobs", card.id);
+          batch.update(ref, {
+            order: idx,
+            status: cid,
             updatedAt: serverTimestamp(),
-        })
-            .catch(console.error)
-            .finally(() => setTimeout(() => (isUpdating.current = false), 300));
+          });
+        });
+      });
 
-        dragRef.current = { colId: null, index: null };
-    }
+      batch
+        .commit()
+        .catch(console.error)
+        .finally(() => setTimeout(() => (isUpdating.current = false), 300));
 
-    // ---------- search helper ----------
-    const filtered = (cards) => {
-        const q = search.trim().toLowerCase();
-        if (!q) return cards;
-        return cards.filter(
-            (c) =>
-                (c.title || "").toLowerCase().includes(q) ||
-                (c.company || "").toLowerCase().includes(q) ||
-                (c.type || "").toLowerCase().includes(q) ||
-                (c.description || "").toLowerCase().includes(q)
-        );
-    };
+      return next;
+    });
 
- return (
+    dragRef.current = { colId: null, index: null };
+  }
+
+  function handleDropToEnd(toColId, e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const { colId: fromColId, index: fromIndex } = dragRef.current || {};
+    if (fromColId == null || fromIndex == null) return;
+
+    setBoard(prev => {
+      const next = structuredClone(prev);
+      const fromCards = next[fromColId];
+      const toCards = next[toColId];
+
+      if (!fromCards[fromIndex]) return prev;
+
+      const [moved] = fromCards.splice(fromIndex, 1);
+
+      if (toCards.some(c => c.id === moved.id)) return prev;
+
+      moved.status = toColId;
+      toCards.push(moved);
+
+      isUpdating.current = true;
+      const batch = writeBatch(db);
+      const updateCols = new Set([fromColId, toColId]);
+
+      updateCols.forEach(cid => {
+        next[cid].forEach((card, idx) => {
+          const ref = doc(db, "jobs", card.id);
+          batch.update(ref, {
+            order: idx,
+            status: cid,
+            updatedAt: serverTimestamp(),
+          });
+        });
+      });
+
+      batch
+        .commit()
+        .catch(console.error)
+        .finally(() => setTimeout(() => (isUpdating.current = false), 300));
+
+      return next;
+    });
+
+    dragRef.current = { colId: null, index: null };
+  }
+
+  // ---------- search helper ----------
+  const filtered = (cards) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return cards;
+    return cards.filter(
+      (c) =>
+        (c.title || "").toLowerCase().includes(q) ||
+        (c.company || "").toLowerCase().includes(q) ||
+        (c.type || "").toLowerCase().includes(q) ||
+        (c.description || "").toLowerCase().includes(q)
+    );
+  };
+
+  return (
     <div className="jt-app">
-      <Sidebar user={user}/>
+      <Sidebar user={user} />
 
       <main className="jt-main">
         <header className="jt-topbar">

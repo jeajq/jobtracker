@@ -404,7 +404,7 @@ body,
   gap: 10px;
 }
 
-.form-section { /*fix form layout from contact details*/
+.form-section {
   display: flex;
   flex-direction: column;
   margin-top: 15px;
@@ -501,7 +501,7 @@ body,
   font-weight: 500;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   opacity: 0;
-  animation: slideUpFade 0.5s forwards, fadeOut 0.5s 3.5s forwards; /*4s total*/
+  animation: slideUpFade 0.5s forwards, fadeOut 0.5s 3.5s forwards; 
   z-index: 9999;
 }
 
@@ -685,4 +685,19 @@ body,
 .jt-results.scrollable::-webkit-scrollbar-thumb {
   background-color: var(--border);
   border-radius: var(--radius);
+}
+/*SAVED JOBS PAGE - DELETE BTN*/
+
+.jt-btn-red {
+  background-color: #ff4d4d;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.jt-btn-red:hover {
+  background-color: #e04343;
 }

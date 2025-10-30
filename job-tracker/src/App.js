@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Login from "./pages/Login";
 import JobTrackerPage from "./pages/JobTrackerPage";
 import JobSearchPage from "./pages/JobSearchPage";
+import SkillsPage from "./pages/SkillsPage";
 import SavedJobsPage from "./pages/SavedJobsPage";
 import EmployerJobsPage from "./pages/EmployerJobsPage";
 
@@ -33,6 +34,8 @@ export default function App() {
       return <JobSearchPage user={user} />;
     case "#saved":
       return <SavedJobsPage user={user} />;
+    case "#skills":
+      return <SkillsPage user={user} />;
     default:
       return <JobTrackerPage user={user} />;
   }
