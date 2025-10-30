@@ -6,10 +6,8 @@ export default function JobCard({ job, onDelete, onAddNote, onDragStart }) {
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [note, setNote] = useState(job?.note || "");
 
-  // ref to the textarea so we can control cursor position
   const noteRef = useRef(null);
 
-  // whenever we enter "edit note" mode, focus and move caret to end
   useEffect(() => {
     if (isAddingNote && noteRef.current) {
       const el = noteRef.current;
@@ -113,8 +111,8 @@ export default function JobCard({ job, onDelete, onAddNote, onDragStart }) {
           <button
             className="jt-pill"
             onClick={() => {
-              setNote(job.note || "");   // make sure it's in sync
-              setIsAddingNote(true);     // triggers focus+caret effect
+              setNote(job.note || "");  
+              setIsAddingNote(true);     
             }}
           >
             Add Note
