@@ -25,7 +25,7 @@ const COLUMNS = [
   { id: "rejected", label: "Rejected" },
 ];
 
-export default function JobTrackerPage({ user }) {
+export default function JobTrackerPage({ user, onLogout }) {
   const [board, setBoard] = useState({
     applied: [],
     assessment: [],
@@ -238,7 +238,7 @@ export default function JobTrackerPage({ user }) {
 
   return (
     <div className="jt-app">
-      <Sidebar user={user} />
+      <Sidebar user={user} onLogout={onLogout} />
 
       <main className="jt-main">
         <header className="jt-topbar">

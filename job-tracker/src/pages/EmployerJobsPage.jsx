@@ -5,7 +5,7 @@ import { collection, query, where, onSnapshot } from "firebase/firestore";
 import "../components/job-tracker.css";
 import AddJob from "./AddJob.jsx";
 
-export default function EmployerJobsPage({ user, navigate }) {
+export default function EmployerJobsPage({ user, navigate, onLogout }) {
   const [jobs, setJobs] = useState([]);
   const [showAddJob, setShowAddJob] = useState(false);
 
@@ -29,7 +29,7 @@ export default function EmployerJobsPage({ user, navigate }) {
 
   return (
     <div className="jt-app">
-       <Sidebar user={user}/>
+       <Sidebar user={user} onLogout={onLogout} />
 
       <main className="jt-main">
         <header className="jt-topbar">

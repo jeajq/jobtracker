@@ -5,7 +5,7 @@ import axios from "axios";
 import { db } from "../lib/firebase";
 import { addDoc, collection, serverTimestamp, writeBatch, doc } from "firebase/firestore";
 
-export default function JobSearchPage({ user }) {
+export default function JobSearchPage({ user, onLogout }) {
   const [query, setQuery] = useState("");
   const [location] = useState("Australia");
   const [results, setResults] = useState([]);
@@ -75,8 +75,7 @@ export default function JobSearchPage({ user }) {
 
   return (
     <div className="jt-app">
-       <Sidebar user={user}/>
-
+      <Sidebar user={user} onLogout={onLogout} />
       <main className="jt-main">
         <header className="jt-topbar jt-topbar--search">
           <form onSubmit={runSearch} className="jt-search-row">

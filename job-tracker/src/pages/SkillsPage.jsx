@@ -39,7 +39,7 @@ function inferType(raw) {
   return "other";
 }
 
-export default function SkillsPage({ user }) {
+export default function SkillsPage({ user, onLogout }) {
   // ui state
   const [searchText, setSearchText] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -168,7 +168,7 @@ export default function SkillsPage({ user }) {
 
   return (
     <div className="jt-app">
-      <Sidebar user={user} />
+      <Sidebar user={user} onLogout={onLogout} />
 
       <main className="jt-main">
         {/* Top bar */}

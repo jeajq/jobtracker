@@ -16,6 +16,12 @@ export default function App() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
+  function logout() {
+    setUser(null);
+    window.location.hash = "";
+
+  }
+
   if (!user) return <Login onLogin={(userData) => setUser(userData)} />;
 
   //EMPLOYER
@@ -25,18 +31,18 @@ export default function App() {
       window.location.hash = "#employer-jobs";
       setTab("#employer-jobs");
     }
-    return <EmployerJobsPage user={user} />;
+    return <EmployerJobsPage user={user} onLogout={logout} />;
   }
 
   //NORMAL USER
   switch (tab) {
     case "#search":
-      return <JobSearchPage user={user} />;
+      return <JobSearchPage user={user} onLogout={logout} />;
     case "#saved":
-      return <SavedJobsPage user={user} />;
+      return <SavedJobsPage user={user}onLogout={logout}/>;
     case "#skills":
-      return <SkillsPage user={user} />;
+      return <SkillsPage user={user} onLogout={logout}/>;
     default:
-      return <JobTrackerPage user={user} />;
+      return <JobTrackerPage user={user} onLogout={logout}/>;
   }
 }

@@ -11,7 +11,7 @@ import {
   doc,
 } from "firebase/firestore";
 
-export default function SavedJobsPage({ user }) {
+export default function SavedJobsPage({ user, onLogout }) {
   const [saved, setSaved] = useState([]);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function SavedJobsPage({ user }) {
 
   return (
     <div className="jt-app">
-       <Sidebar user={user}/>
+       <Sidebar user={user} onLogout={onLogout} />
 
       <main className="jt-main">
         <aside className="jt-sidebar"></aside>
