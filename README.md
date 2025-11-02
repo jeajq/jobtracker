@@ -3,14 +3,13 @@ University of Technology Sydney (UTS)
 4113 Software Development Project
 
 ## Team Members
-Jean Quisumbing (13192190)
-Althea Manigsaca
-Stacey Debulos
-Thushan Waduarachchige
-Moneli Peries
+* Jean Quisumbing (13192190)
+* Althea Manigsaca
+* Stacey Debulos
+* Thushan Waduarachchige
+* Moneli Peries
 
 ## Project Description
-
 Job Tracker is a React-based web application designed to help users manage and monitor their job applications efficiently through a clean, Kanban-style interface. The system integrates with Google Firestore to enable real-time updates and persistence of user data.
 
 The platform allows users to:
@@ -25,7 +24,6 @@ This project was developed as part of a **UTS Software Development** coursework,
 The client’s goal was to create a **centralised job management system** that combines tracking, discovery, and saving of potential opportunities in one place.
 
 ## Key Features
-
 - Real-time data synchronisation using **Firebase Firestore**
 - Fully interactive **drag-and-drop Kanban board**
 - Responsive dark UI aligned with modern design standards
@@ -35,19 +33,18 @@ The client’s goal was to create a **centralised job management system** that c
 - Secure login using Firebase Authentication  
 
 ## Tech Stack
-
 - **Languages:** ReactJS, Tailwind CSS, HTML 
 - **Database:** Google Firebase Firestore
 - **Desktop Framework:** Electron
 
 ## How to Run 
-
+````
 * Download from GitHub Repo
 * Unzip file
 * Open Command Prompt and change the current directory to  ---
 * Run "npm install" to download necessary modules
 * Run "npm start" to start server
-  
+````
 ## Links
 
 * Jira: https://utswpmsm.atlassian.net/jira/software/projects/JT/boards/34/backlog?atlOrigin=eyJpIjoiZDcyYmJjMzZhMjQyNDJlYThiZWY0MjNkMzk3YmUzYzEiLCJwIjoiaiJ9\
