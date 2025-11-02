@@ -50,8 +50,8 @@ The client’s goal was to create a **centralised job management system** that c
   
 ## Links
 
-Jira: https://utswpmsm.atlassian.net/jira/software/projects/JT/boards/34/backlog?atlOrigin=eyJpIjoiZDcyYmJjMzZhMjQyNDJlYThiZWY0MjNkMzk3YmUzYzEiLCJwIjoiaiJ9
-Confluence: https://student-team-ex81d3tt.atlassian.net/wiki/x/AoAE
-GitHub: https://github.com/jeajq/jobtracker
+* Jira: https://utswpmsm.atlassian.net/jira/software/projects/JT/boards/34/backlog?atlOrigin=eyJpIjoiZDcyYmJjMzZhMjQyNDJlYThiZWY0MjNkMzk3YmUzYzEiLCJwIjoiaiJ9\
+* Confluence: https://student-team-ex81d3tt.atlassian.net/wiki/x/AoAE
+* GitHub: https://github.com/jeajq/jobtracker
 
 
