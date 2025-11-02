@@ -68,11 +68,6 @@ export default function JobCard({ job, onDelete, onAddNote, onDragStart }) {
         <span className="jt-muted">{job.employmentType || job.type || "—"}</span>
       </div>
 
-      {/* description */}
-      {job.description && (
-        <div className="jt-description">{job.description}</div>
-      )}
-
       {/* date applied */}
       <div className="jt-date">
         Date Applied: {job.dateApplied || "—"}
