@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { db } from "../firebase";
+import { db } from "../lib/firebase";
 import {
   collection,
   addDoc,
@@ -85,10 +85,13 @@ export default function Login({ onLogin }) {
           email,
           password,
           phone,
+          role: activeTab === "user" ? "user" : "employer", //sets role
           createdAt: Timestamp.now(),
         };
-        if (activeTab === "employer") newUser.companyName = companyName;
+        //company name only for employers
+        if (activeTab === "employer") newUser.companyName = companyName; 
 
+        console.log("Adding to:", collectionName, "with data:", newUser); 
         const docRef = await addDoc(collection(db,collectionName), newUser);
         const createdUser = {
           id: docRef.id,
@@ -177,6 +180,8 @@ export default function Login({ onLogin }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            name="email"
+            autoComplete="email"
           />
           <input
             type="password"
@@ -184,6 +189,8 @@ export default function Login({ onLogin }) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            name="password"
+            autoComplete="current-password"
           />
 
           <button type="submit">{isLogin ? "Login" : "Sign Up"}</button>

@@ -2,7 +2,15 @@ import React, { useState, useEffect } from "react";
 import "../components/job-tracker.css";
 import axios from "axios";
 import { db } from "../lib/firebase";
-import { addDoc, collection, serverTimestamp, doc, updateDoc, getDocs } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  serverTimestamp,
+  getDocs,
+  query as firestoreQuery,
+  where,
+} from "firebase/firestore";
+import ApplyJobPopup from "./ApplyJobPopup"; 
 
 export default function JobSearchPage({ user }) {
   const [query, setQuery] = useState("");
@@ -10,28 +18,58 @@ export default function JobSearchPage({ user }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [popupJob, setPopupJob] = useState(null); 
 
   const BASE_URL = "http://localhost:5000/api/jobs";
 
-  //fetch jobs from API
+  //fetch employer + Seek jobs
   const fetchJobs = async () => {
     if (!query.trim()) return alert("Please enter a search query.");
     setLoading(true);
+
     try {
+      //Firestore employer jobs
+      const jobDocs = await getDocs(collection(db, "jobs"));
+      const employerJobs = jobDocs.docs
+        .map((docSnap) => {
+          const data = docSnap.data();
+          return {
+            id: `employer-${docSnap.id}`,
+            firestoreId: docSnap.id,
+            title: data.title || "Untitled Job",
+            company: data.company?.trim() || "Employer Job",
+            location: data.location || "Australia",
+            url: data.url || "",
+            datePosted: data.datePosted || "N/A",
+            role: data.role || data.type || "N/A",
+            description: data.description || "No description provided.",
+            applied: false,
+            source: "employer",
+          };
+        })
+        .filter(
+          (job) =>
+            job.title.toLowerCase().includes(query.toLowerCase()) ||
+            job.company.toLowerCase().includes(query.toLowerCase())
+        );
+
+      //seek API jobs
       const response = await axios.get(BASE_URL, { params: { q: query, loc: location } });
-      const formatted = (response.data || []).map((job, idx) => ({
-        id: idx,
+      const seekJobs = (response.data || []).map((job, idx) => ({
+        id: `seek-${idx}`,
         title: job.title,
-        company: job.company,
+        company: job.company || "Unknown Company",
         location: job.location || location,
-        url: job.link,
+        url: job.link || job.url || "",
         datePosted: "N/A",
         role: "N/A",
         description: "Click to view full listing.",
         applied: false,
         firestoreId: null,
+        source: "seek",
       }));
-      setResults(formatted);
+
+      setResults([...employerJobs, ...seekJobs]);
     } catch (err) {
       console.error("Error fetching jobs:", err);
       setResults([]);
@@ -40,12 +78,22 @@ export default function JobSearchPage({ user }) {
     }
   };
 
-  //save job to saved_jobs sub-collection
+   //save job
   const saveJob = async (job) => {
     if (!user?.uid) return alert("Please log in to save jobs.");
+
     try {
-      const userJobsRef = collection(db, "users", user.uid, "saved_jobs");
-      const docRef = await addDoc(userJobsRef, {
+      const savedJobsRef = collection(db, "users", user.uid, "saved_jobs");
+      const q = firestoreQuery(savedJobsRef, where("url", "==", job.url));
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+        setToast("⚠️ Job already saved!");
+        setTimeout(() => setToast(null), 4000);
+        return;
+      }
+
+      const docRef = await addDoc(savedJobsRef, {
         title: job.title,
         company: job.company,
         location: job.location,
@@ -55,14 +103,13 @@ export default function JobSearchPage({ user }) {
         description: job.description,
         savedAt: serverTimestamp(),
         applied: job.applied || false,
-        appliedAt: job.appliedAt || null,
       });
 
-      setResults(prev =>
-        prev.map(j => (j.id === job.id ? { ...j, firestoreId: docRef.id } : j))
+      setResults((prev) =>
+        prev.map((j) => (j.id === job.id ? { ...j, firestoreId: docRef.id } : j))
       );
 
-      setToast(`✅ Job "${job.title}" saved successfully!`);
+      setToast(`✅ Job "${job.title}" saved!`);
       setTimeout(() => setToast(null), 4000);
     } catch (err) {
       console.error("Error saving job:", err);
@@ -70,66 +117,6 @@ export default function JobSearchPage({ user }) {
       setTimeout(() => setToast(null), 4000);
     }
   };
-
-  //apply job to applied_jobs sub-collection and update saved_jobs
-  const applyJob = async (job) => {
-    if (!user?.uid) return alert("Please log in to track applications.");
-    try {
-      const appliedJobsRef = collection(db, "users", user.uid, "applied_jobs");
-
-      // Get current count to determine position
-      const snapshot = await getDocs(appliedJobsRef);
-      const nextPosition = snapshot.size; //zero-based index for position
-
-      await addDoc(appliedJobsRef, {
-        title: job.title,
-        company: job.company,
-        location: job.location,
-        url: job.url,
-        datePosted: job.datePosted,
-        role: job.role,
-        description: job.description,
-        appliedAt: serverTimestamp(),
-        status: "applied",
-        position: nextPosition,
-      });
-
-      if (job.firestoreId) {
-        //update saved job
-        const savedJobRef = doc(db, "users", user.uid, "saved_jobs", job.firestoreId);
-        await updateDoc(savedJobRef, { applied: true, appliedAt: serverTimestamp() });
-      } else {
-        //create saved job entry if not already saved
-        const savedJobsRef = collection(db, "users", user.uid, "saved_jobs");
-        const savedDocRef = await addDoc(savedJobsRef, {
-          title: job.title,
-          company: job.company,
-          location: job.location,
-          url: job.url,
-          datePosted: job.datePosted,
-          role: job.role,
-          description: job.description,
-          savedAt: serverTimestamp(),
-          applied: true,
-          appliedAt: serverTimestamp(),
-        });
-
-        setResults(prev =>
-          prev.map(j => (j.id === job.id ? { ...j, firestoreId: savedDocRef.id, applied: true } : j))
-        );
-      }
-
-      setToast(`✅ Application for "${job.title}" tracked!`);
-      setTimeout(() => setToast(null), 4000);
-
-      window.open(job.url, "_blank");
-    } catch (err) {
-      console.error("Error applying to job:", err);
-      setToast("❌ Could not track application.");
-      setTimeout(() => setToast(null), 4000);
-    }
-  };
-
 
   const runSearch = (e) => {
     e?.preventDefault();
@@ -143,11 +130,10 @@ export default function JobSearchPage({ user }) {
       <aside className="jt-sidebar">
         <div className="jt-logo">job.tracker</div>
         <nav className="jt-nav">
-          <a className="jt-nav-item" href="#board"><span>Job Board</span></a>
-          <a className="jt-nav-item active" href="#search"><span>Job Search</span></a>
-          <a className="jt-nav-item" href="#saved"><span>Saved Jobs</span></a>
+          <a className="jt-nav-item" href="#board">Job Board</a>
+          <a className="jt-nav-item active" href="#search">Job Search</a>
+          <a className="jt-nav-item" href="#saved">Saved Jobs</a>
         </nav>
-        <div className="jt-logout">Log Out ⟶</div>
       </aside>
 
       <main className="jt-main">
@@ -164,20 +150,14 @@ export default function JobSearchPage({ user }) {
         </header>
 
         <section className="jt-results scrollable">
-          {loading && (
+          {loading ? (
             <div className="jt-loading-center">
               <div className="jt-spinner"></div>
               <div>Searching jobs…</div>
             </div>
-          )}
-
-          {!loading && results.length === 0 && (
-            <div className="jt-empty-center">
-              <div>Search for jobs above 👆</div>
-            </div>
-          )}
-
-          {!loading && results.length > 0 && (
+          ) : results.length === 0 ? (
+            <div className="jt-empty-center">Search for jobs above 👆</div>
+          ) : (
             <>
               <div className="jt-results-head">Results found ({results.length})</div>
               <ul className="jt-list">
@@ -192,13 +172,19 @@ export default function JobSearchPage({ user }) {
                       <div className="jt-role">{job.role}</div>
                       <div className="jt-desc">{job.description}</div>
                     </div>
+
                     <div className="jt-meta">
                       <span className="jt-date">Date posted: {job.datePosted}</span>
                       <div className="jt-actions">
-                        <button className="jt-btn-apply" onClick={() => applyJob(job)}>
+                        <button className="jt-btn-apply" onClick={() => setPopupJob(job)}>
                           {job.applied ? "Applied ✅" : "Apply"}
                         </button>
-                        <button className="jt-btn-save" title="Save" onClick={() => saveJob(job)}>💾 Save</button>
+                        <button className="jt-btn-view" onClick={() => window.open(job.url, "_blank")}>
+                          View
+                        </button>
+                        <button className="jt-btn-save" onClick={() => saveJob(job)}>
+                          💾 Save
+                        </button>
                       </div>
                     </div>
                   </li>
@@ -208,11 +194,27 @@ export default function JobSearchPage({ user }) {
           )}
         </section>
       </main>
-      {toast && (
-        <div className="toast-success">
-          <span>{toast}</span>
-        </div>
-      )}
+
+      {/* Apply Job Popup */}
+        {popupJob && (
+          <>
+            {console.log("Current user passed to ApplyJobPopup:", user)}
+            <ApplyJobPopup
+              job={popupJob}
+              user={user}
+              onClose={() => setPopupJob(null)}
+              onApplied={(job) => {
+                setResults(prev =>
+                  prev.map(j => j.id === job.id ? { ...j, applied: true } : j)
+                );
+                setToast(`✅ Applied to "${job.title}"`);
+                setTimeout(() => setToast(null), 4000);
+              }}
+            />
+          </>
+        )}
+        
+      {toast && <div className="toast-success">{toast}</div>}
     </div>
   );
 }
