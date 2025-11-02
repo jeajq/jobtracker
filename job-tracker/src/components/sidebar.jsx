@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 
+<<<<<<< HEAD
 export default function Sidebar({ user }) {
+=======
+export default function Sidebar({ user, onLogout }) {
+>>>>>>> bf8cc0a57a01b06f6a8270eebb37543da3f6aff5
   const [hash, setHash] = useState(() => window.location.hash || "#board");
   useEffect(() => {
     const onHash = () => setHash(window.location.hash || "#board");
@@ -24,7 +28,17 @@ export default function Sidebar({ user }) {
           </a>
         )}
       </nav>
+<<<<<<< HEAD
       <div className="jt-logout">Log Out ⟶</div>
+=======
+      <div
+        className="jt-logout"
+        style={{ cursor: "pointer" }}
+        onClick={onLogout}
+      >
+        Log Out ⟶
+      </div>
+>>>>>>> bf8cc0a57a01b06f6a8270eebb37543da3f6aff5
     </aside>
   );
 }

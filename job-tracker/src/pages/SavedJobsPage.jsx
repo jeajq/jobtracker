@@ -11,7 +11,7 @@ import {
   doc,
 } from "firebase/firestore";
 
-export default function SavedJobsPage({ user }) {
+export default function SavedJobsPage({ user, onLogout }) {
   const [saved, setSaved] = useState([]);
 
   useEffect(() => {
@@ -36,28 +36,10 @@ export default function SavedJobsPage({ user }) {
 
   return (
     <div className="jt-app">
-      <aside className="jt-sidebar">
-        <div className="jt-logo">job.tracker</div>
-        <nav className="jt-nav">
-          <a className="jt-nav-item active" href="#board">
-            <span>Job Board</span>
-          </a>
-          <a className="jt-nav-item" href="#search">
-            <span>Job Search</span>
-          </a>
-          <a className="jt-nav-item" href="#saved">
-            <span>Saved Jobs</span>
-          </a>
-          {user?.type === "employer" && (
-            <a className="jt-nav-item" href="#employer-jobs">
-              <span>View Added Jobs</span>
-            </a>
-          )}
-        </nav>
-        <div className="jt-logout">Log Out ⟶</div>
-      </aside>
+       <Sidebar user={user} onLogout={onLogout} />
 
       <main className="jt-main">
+        <aside className="jt-sidebar"></aside>
         <header className="jt-topbar">
           <input className="jt-search" placeholder="Search jobs..." />
         </header>
