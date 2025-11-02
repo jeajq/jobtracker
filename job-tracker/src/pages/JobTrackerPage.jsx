@@ -1,12 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import "../components/job-tracker.css";
 import Sidebar from "../components/sidebar";
-import { db } from "../lib/firebase.js";
+import { db } from "../lib/firebase";
 import {
   collection,
   onSnapshot,
-  query,
-  orderBy,
   doc,
   serverTimestamp,
   writeBatch,
@@ -32,32 +30,36 @@ export default function JobTrackerPage({ user }) {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  //prevent snapshot updates while drag is saving
   const isSaving = useRef(false);
 
-  //real-time listener for applied jobs
   useEffect(() => {
     if (!user?.uid) return;
 
     const jobsRef = collection(db, "users", user.uid, "applied_jobs");
-    const q = query(jobsRef, orderBy("position", "asc"));
 
     const unsubscribe = onSnapshot(
-      q,
+      jobsRef,
       (snapshot) => {
-        if (isSaving.current) return;//skip updates while drag-save in progress
+        if (isSaving.current) return;
 
-        const jobs = snapshot.docs.map((docSnap) => ({
-          firestoreId: docSnap.id,
-          ...docSnap.data(),
-        }));
+        const jobs = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
+          return {
+            firestoreId: docSnap.id,
+            ...data,
+            status: data.status || "applied", // default status
+            position: data.position ?? 0, // default position
+          };
+        });
 
-        //group jobs by status and sort by position
+        //group jobs by status
         const nextBoard = { applied: [], assessment: [], interview: [], offer: [], rejected: [] };
         jobs.forEach((job) => {
-          const col = job.status || "applied";
+          const col = job.status;
           if (nextBoard[col]) nextBoard[col].push(job);
         });
+
+        // ort each column by position(safe now)
         Object.keys(nextBoard).forEach((col) => {
           nextBoard[col].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
         });
@@ -74,7 +76,6 @@ export default function JobTrackerPage({ user }) {
     return () => unsubscribe();
   }, [user?.uid]);
 
-  //drag and drop handler
   const onDragEnd = async (result) => {
     const { source, destination } = result;
     if (!destination) return;
@@ -84,25 +85,23 @@ export default function JobTrackerPage({ user }) {
     const sourceColId = source.droppableId;
     const destColId = destination.droppableId;
 
-    //remove moved job from source and insert into destination
-    const [movedJob] = newBoard[sourceColId].splice(source.index,1);
+    const [movedJob] = newBoard[sourceColId].splice(source.index, 1);
     movedJob.status = destColId;
     newBoard[destColId].splice(destination.index, 0, movedJob);
 
-    //update board locally
     setBoard(newBoard);
     isSaving.current = true;
 
     try {
       const batch = writeBatch(db);
 
-      //normalise positions in source column
+      //update positions in source
       newBoard[sourceColId].forEach((job, idx) => {
         const ref = doc(db, "users", user.uid, "applied_jobs", job.firestoreId);
         batch.update(ref, { position: idx, updatedAt: serverTimestamp() });
       });
 
-      //normalise positions & status in destination column
+      //update positions and status in destination
       newBoard[destColId].forEach((job, idx) => {
         const ref = doc(db, "users", user.uid, "applied_jobs", job.firestoreId);
         batch.update(ref, { position: idx, status: job.status, updatedAt: serverTimestamp() });
@@ -110,14 +109,12 @@ export default function JobTrackerPage({ user }) {
 
       await batch.commit();
     } catch (err) {
-      console.error("Error updating positions in Firestore:", err);
+      console.error("Error updating positions:", err);
     } finally {
-      //allow snapshot updates after short delay
       setTimeout(() => { isSaving.current = false; }, 300);
     }
   };
 
-  //filter cards by search
   const filtered = (cards) => {
     const q = search.trim().toLowerCase();
     if (!q) return cards;
