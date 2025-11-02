@@ -4,10 +4,10 @@ University of Technology Sydney (UTS)
 
 ## Team Members
 * Jean Quisumbing (13192190)
-* Althea Manigsaca
-* Stacey Debulos
-* Thushan Waduarachchige
-* Moneli Peries
+* Althea Manigsaca (25265048)
+* Stacey Debulos (24485979)
+* Thushan Waduarachchige (14483515)
+* Moneli Peries (14483984)
 
 ## Project Description
 Job Tracker is a React-based web application designed to help users manage and monitor their job applications efficiently through a clean, Kanban-style interface. The system integrates with Google Firestore to enable real-time updates and persistence of user data.
@@ -19,7 +19,7 @@ The platform allows users to:
 - Save and manage interesting job postings within the **Saved Jobs** section.
 - Enjoy a modern, dark-themed interface designed for usability and clarity.
 
-This project was developed as part of a **UTS Software Development** coursework, serving as a prototype for an application targeted at **students and early-career professionals** who need an easy way to organise and track their job search process.
+This project was developed as part of a **UTS Software Development Studio** coursework, serving as a prototype for an application targeted at **students and early-career professionals** who need an easy way to organise and track their job search process.
 
 The client’s goal was to create a **centralised job management system** that combines tracking, discovery, and saving of potential opportunities in one place.
 
