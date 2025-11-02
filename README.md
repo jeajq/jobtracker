@@ -1,5 +1,13 @@
 # Job Tracker
-University of Technology Sydney (UTS) — Software Development Project
+University of Technology Sydney (UTS) 
+4113 Software Development Project
+
+## Team Members
+Jean Quisumbing (13192190)
+Althea Manigsaca
+Stacey Debulos
+Thushan Waduarachchige
+Moneli Peries
 
 ## Project Description
 
@@ -26,9 +34,24 @@ The client’s goal was to create a **centralised job management system** that c
 - Admin dashboard for managing listings and applicant stages
 - Secure login using Firebase Authentication  
 
-
 ## Tech Stack
 
 - **Languages:** ReactJS, Tailwind CSS, HTML 
 - **Database:** Google Firebase Firestore
 - **Desktop Framework:** Electron
+
+## How to Run 
+
+* Download from GitHub Repo
+* Unzip file
+* Open Command Prompt and change the current directory to  ---
+* Run "npm install" to download necessary modules
+* Run "npm start" to start server
+  
+## Links
+
+Jira: https://utswpmsm.atlassian.net/jira/software/projects/JT/boards/34/backlog?atlOrigin=eyJpIjoiZDcyYmJjMzZhMjQyNDJlYThiZWY0MjNkMzk3YmUzYzEiLCJwIjoiaiJ9
+Confluence: https://student-team-ex81d3tt.atlassian.net/wiki/x/AoAE
+GitHub: https://github.com/jeajq/jobtracker
+
+
