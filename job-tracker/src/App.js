@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import Login from "./pages/Login";
 import JobTrackerPage from "./pages/JobTrackerPage";
 import JobSearchPage from "./pages/JobSearchPage";
+import SkillsPage from "./pages/SkillsPage";
 import SavedJobsPage from "./pages/SavedJobsPage";
 import EmployerJobsPage from "./pages/EmployerJobsPage";
-import SkillsPage from "./pages/SkillsPage";
 
 export default function App() {
   const [user, setUser] = useState(null); // logged-in user info
@@ -36,18 +36,19 @@ export default function App() {
       setTab("#employer-jobs");
       return null; // prevent flicker while redirecting
     }
-    return <EmployerJobsPage user={userWithId} />;
+    return <EmployerJobsPage user={userWithId} onLogout={logout} />;
   }
 
   // switch for normal user
   switch (tab) {
     case "#search":
-      return <JobSearchPage user={userWithId} />;
+      return <JobSearchPage user={userWithId} onLogout={logout} />;
     case "#saved":
-      return <SavedJobsPage user={userWithId} />;
+      return <SavedJobsPage user={userWithId} onLogout={logout} />;
     case "#skills":
-      return <SkillsPage user={userWithId} />;
+      return <SkillsPage user={userWithId} onLogout={logout} />;
     default:
-      return <JobTrackerPage user={userWithId} />;
+      return <JobTrackerPage user={userWithId} onLogout={logout} />;
   }
+
 }

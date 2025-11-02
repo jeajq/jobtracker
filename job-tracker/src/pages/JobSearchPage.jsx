@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../components/job-tracker.css";
+import Sidebar from "../components/sidebar";
 import axios from "axios";
 import { db } from "../lib/firebase";
 import {
@@ -12,7 +13,7 @@ import {
 } from "firebase/firestore";
 import ApplyJobPopup from "./ApplyJobPopup"; 
 
-export default function JobSearchPage({ user }) {
+export default function JobSearchPage({ user, onLogout }) {
   const [query, setQuery] = useState("");
   const [location] = useState("Australia");
   const [results, setResults] = useState([]);
@@ -127,15 +128,7 @@ export default function JobSearchPage({ user }) {
 
   return (
     <div className="jt-app">
-      <aside className="jt-sidebar">
-        <div className="jt-logo">job.tracker</div>
-        <nav className="jt-nav">
-          <a className="jt-nav-item" href="#board">Job Board</a>
-          <a className="jt-nav-item active" href="#search">Job Search</a>
-          <a className="jt-nav-item" href="#saved">Saved Jobs</a>
-        </nav>
-      </aside>
-
+      <Sidebar user={user} onLogout={onLogout} />
       <main className="jt-main">
         <header className="jt-topbar jt-topbar--search">
           <form onSubmit={runSearch} className="jt-search-row">

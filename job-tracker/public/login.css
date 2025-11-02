@@ -1,0 +1,126 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #22212b;
+  --panel: #11111a;
+  --panel-2: #262433;
+  --border: #3b3948;
+  --text: #ececf3;
+  --muted: #9a98a8;
+  --radius-lg: 16px;
+  --radius: 10px;
+  --gap: 22px;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  font-family: 'Inter', sans-serif;
+}
+
+/*center*/
+.login-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--gap);
+}
+
+/*user and employer tabs*/
+.login-tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.login-tabs button {
+  padding: 10px 20px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.login-tabs button.active {
+  background: var(--panel);
+  border-color: var(--text);
+}
+
+.login-form {
+  background: var(--panel);
+  padding: 30px;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-form h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.login-form input {
+  width: 100%;
+  padding: 12px 15px;
+  margin-bottom: 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.login-form input::placeholder {
+  color: var(--muted);
+}
+
+.login-form button[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius);
+  background: #5c5bf2;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.login-form button[type="submit"]:hover {
+  background: #4544c0;
+}
+
+.toggle-login {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: center;
+}
+
+.login-message {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.toggle-link {
+  text-decoration: underline;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.toggle-link:hover {
+  color: #fff; /* optional hover highlight */
+}

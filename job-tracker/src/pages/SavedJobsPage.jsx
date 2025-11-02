@@ -12,7 +12,7 @@ import {
 import ApplyJobPopup from "./ApplyJobPopup";
 import "../components/job-tracker.css";
 
-export default function SavedJobsPage({ user }) {
+export default function SavedJobsPage({ user, onLogout }) {
   const [savedJobs, setSavedJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
@@ -84,17 +84,10 @@ export default function SavedJobsPage({ user }) {
 
   return (
     <div className="jt-app">
-      <aside className="jt-sidebar">
-        <div className="jt-logo">job.tracker</div>
-        <nav className="jt-nav">
-          <a className="jt-nav-item" href="#board">Job Board</a>
-          <a className="jt-nav-item" href="#search">Job Search</a>
-          <a className="jt-nav-item active" href="#saved">Saved Jobs</a>
-        </nav>
-        <div className="jt-logout">Log Out ⟶</div>
-      </aside>
+       <Sidebar user={user} onLogout={onLogout} />
 
       <main className="jt-main">
+        <aside className="jt-sidebar"></aside>
         <header className="jt-topbar">
           <input className="jt-search" placeholder="Search saved jobs..." />
         </header>
