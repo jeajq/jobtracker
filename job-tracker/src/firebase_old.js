@@ -12,10 +12,12 @@ const firebaseConfig = {
   appId: "1:1095370749972:web:83f8a42731ae45d7634f01"
 };
 
-console.log("[FB] Initialized NEW firebase.js");
+console.log("[FB] Initialized firebase.js");
+// ✅ Prevent duplicate app initialization
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-//initialize Firebase
+// ✅ Initialize Firebase services
 export const db = getFirestore(app);
 export const auth = getAuth(app);
-export const storage = getStorage(app, "gs://job-tracker-60dc9.firebasestorage.app");
+export const storage = getStorage(app);
+

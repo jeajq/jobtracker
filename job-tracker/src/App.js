@@ -7,42 +7,48 @@ import SavedJobsPage from "./pages/SavedJobsPage";
 import EmployerJobsPage from "./pages/EmployerJobsPage";
 
 export default function App() {
-  const [user, setUser] = useState(null); //logged-in user info
-  const [tab, setTab] = useState("");
+  const [user, setUser] = useState(null); // logged-in user info
+  const [tab, setTab] = useState(window.location.hash || "#board");
 
+  // track hash changes
   useEffect(() => {
-    const onHashChange = () => setTab(window.location.hash || "");
+    const onHashChange = () => setTab(window.location.hash || "#board");
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  function logout() {
-    setUser(null);
-    window.location.hash = "";
-
+  // when user not logged in
+  if (!user) {
+    return <Login onLogin={(userData) => setUser(userData)} />;
   }
 
-  if (!user) return <Login onLogin={(userData) => setUser(userData)} />;
+  // ensure user object always has an ID (uid or doc id)
+  const userWithId = {
+    ...user,
+    id: user.id || user.uid || null,
+  };
 
-  //EMPLOYER
-  if (user.type === "employer") {
-    //redirects employers to their jobs page
+  // handle employer view safely
+  if (userWithId.type === "employer") {
+    // redirect once only, not on every render
     if (tab !== "#employer-jobs") {
       window.location.hash = "#employer-jobs";
       setTab("#employer-jobs");
+      return null; // prevent flicker while redirecting
     }
-    return <EmployerJobsPage user={user} onLogout={logout} />;
+    return <EmployerJobsPage user={userWithId} onLogout={logout} />;
   }
 
-  //NORMAL USER
+  // switch for normal user
   switch (tab) {
     case "#search":
-      return <JobSearchPage user={user} onLogout={logout} />;
+      return <JobSearchPage user={userWithId} onLogout={logout} />;
     case "#saved":
-      return <SavedJobsPage user={user}onLogout={logout}/>;
+      return <SavedJobsPage user={userWithId} onLogout={logout} />;
     case "#skills":
-      return <SkillsPage user={user} onLogout={logout}/>;
+      return <SkillsPage user={userWithId} onLogout={logout} />;
     default:
-      return <JobTrackerPage user={user} onLogout={logout}/>;
+      return <JobTrackerPage user={userWithId} onLogout={logout} />;
   }
+
 }

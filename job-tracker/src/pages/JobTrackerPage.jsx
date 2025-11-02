@@ -16,6 +16,7 @@ import {
   serverTimestamp,
   deleteDoc,
 } from "firebase/firestore";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const COLUMNS = [
   { id: "applied", label: "Applied" },
@@ -183,7 +184,8 @@ export default function JobTrackerPage({ user, onLogout }) {
     dragRef.current = { colId: null, index: null };
   }
 
-  // delete job locally after Firestore delete (Firestore snapshot will also catch up)
+  // 
+    job locally after Firestore delete (Firestore snapshot will also catch up)
   async function handleDeleteJob(id) {
     // remove immediately from UI so it feels snappy:
     setBoard((prev) => {
