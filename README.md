@@ -41,9 +41,12 @@ The client’s goal was to create a **centralised job management system** that c
 ````
 * Download from GitHub Repo
 * Unzip file
-* Open Command Prompt and change the current directory to  ---
+* Open Command Prompt and change the current directory to job-tracker
 * Run "npm install" to download necessary modules
 * Run "npm start" to start server
+* Open a second window of Command Prompt and change the current directory to /server
+* Run "npm install" to download necessary modules
+* Run "npm start" to start webscraping
 ````
 ## Links
 

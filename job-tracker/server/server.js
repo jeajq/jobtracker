@@ -37,19 +37,18 @@ app.get("/api/jobs", async (req, res) => {
     console.log("Opening page...");
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
 
-    // Scroll to load more jobs (lazy loading)
     console.log("Scrolling to trigger dynamic load...");
     await page.evaluate(() => window.scrollBy(0, window.innerHeight));
-    await new Promise((r) => setTimeout(r, 2000)); // wait 2s after scroll
+    await new Promise((r) => setTimeout(r, 2000)); //wait 2s after scroll
 
-    // Wait until at least one job card appears
+    //wit until at least one job card appears
     console.log("Waiting for job cards...");
     await page.waitForFunction(
       () => document.querySelectorAll("article").length > 0,
       { timeout: 15000 }
     );
 
-    // Scrape jobs
+    //scrape jobs from seek
     const jobs = await page.evaluate(() => {
       const results = [];
       const jobCards = document.querySelectorAll("article");
