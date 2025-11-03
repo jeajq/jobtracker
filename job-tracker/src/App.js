@@ -26,7 +26,7 @@ export default function App() {
     setUser(null);
     window.location.hash = "";
   }
-  
+
   // ensure user object always has an ID (uid or doc id)
   const userWithId = {
     ...user,
