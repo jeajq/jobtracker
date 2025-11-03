@@ -12,7 +12,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import "../components/job-tracker.css";
+import "../components/skills.css";
 
 const LEVELS = ["elementary", "intermediate", "advanced", "expert"];
 
