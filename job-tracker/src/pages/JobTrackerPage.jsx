@@ -184,8 +184,7 @@ export default function JobTrackerPage({ user, onLogout }) {
     dragRef.current = { colId: null, index: null };
   }
 
-  // 
-    job locally after Firestore delete (Firestore snapshot will also catch up)
+
   async function handleDeleteJob(id) {
     // remove immediately from UI so it feels snappy:
     setBoard((prev) => {

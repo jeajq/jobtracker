@@ -22,6 +22,11 @@ export default function App() {
     return <Login onLogin={(userData) => setUser(userData)} />;
   }
 
+  function logout() {
+    setUser(null);
+    window.location.hash = "";
+  }
+  
   // ensure user object always has an ID (uid or doc id)
   const userWithId = {
     ...user,
