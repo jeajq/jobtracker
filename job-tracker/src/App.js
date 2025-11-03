@@ -5,6 +5,7 @@ import JobSearchPage from "./pages/JobSearchPage";
 import SkillsPage from "./pages/SkillsPage";
 import SavedJobsPage from "./pages/SavedJobsPage";
 import EmployerJobsPage from "./pages/EmployerJobsPage";
+import UserDetailsPage from "./pages/UserDetailsPage";
 
 export default function App() {
   const [user, setUser] = useState(null); // logged-in user info
@@ -52,6 +53,8 @@ export default function App() {
       return <SavedJobsPage user={userWithId} onLogout={logout} />;
     case "#skills":
       return <SkillsPage user={userWithId} onLogout={logout} />;
+    case "#profile":
+      return <UserDetailsPage user={userWithId} onLogout={logout} />;
     default:
       return <JobTrackerPage user={userWithId} onLogout={logout} />;
   }
