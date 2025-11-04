@@ -19,10 +19,10 @@ const LEVELS = ["elementary", "intermediate", "advanced", "expert"];
 function inferType(raw) {
   if (!raw) return "other";
   const s = raw.toLowerCase();
-  if (["python","java","c++","c#","c ","javascript","js","typescript","html","css","sql","bash","linux","shell","go","rust","kotlin","swift"].some(k => s.includes(k))) return "language";
-  if (["react","react.js","vue","vue.js","angular","svelte","next","express","django","flask","spring","rails","laravel","tailwind","bootstrap"].some(k => s.includes(k))) return "library";
-  if (["figma","xd","sketch","ui","ux","wireframe","prototype"].some(k => s.includes(k))) return "design";
-  if (["excel","notion","jira","git","github"].some(k => s.includes(k))) return "other";
+  if (["python", "java", "c++", "c#", "c ", "javascript", "js", "typescript", "html", "css", "sql", "bash", "linux", "shell", "go", "rust", "kotlin", "swift"].some(k => s.includes(k))) return "language";
+  if (["react", "react.js", "vue", "vue.js", "angular", "svelte", "next", "express", "django", "flask", "spring", "rails", "laravel", "tailwind", "bootstrap"].some(k => s.includes(k))) return "library";
+  if (["figma", "xd", "sketch", "ui", "ux", "wireframe", "prototype"].some(k => s.includes(k))) return "design";
+  if (["excel", "notion", "jira", "git", "github"].some(k => s.includes(k))) return "other";
   return "other";
 }
 
@@ -31,7 +31,7 @@ export default function SkillsPage({ user, onLogout, avatarRef, onProfileClick }
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [draft, setDraft] = useState({ skill: "", level: "" });
   const [skills, setSkills] = useState([]);
-  const [sortField, setSortField] = useState(null); 
+  const [sortField, setSortField] = useState(null);
   const [sortAsc, setSortAsc] = useState(true);
   const [skillToDelete, setSkillToDelete] = useState(null);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
@@ -55,7 +55,7 @@ export default function SkillsPage({ user, onLogout, avatarRef, onProfileClick }
       (s.level || "").toLowerCase().includes(q)
     );
     if (sortField) {
-      result.sort((a,b) => {
+      result.sort((a, b) => {
         const A = (a[sortField] || "").toLowerCase();
         const B = (b[sortField] || "").toLowerCase();
         return sortAsc ? A.localeCompare(B) : B.localeCompare(A);
@@ -130,14 +130,14 @@ export default function SkillsPage({ user, onLogout, avatarRef, onProfileClick }
           <div className="jt-table">
             <div className="jt-tr jt-tr--head">
               {[{ key: "skill", label: "skill", width: "w-40" },
-                { key: "type", label: "type", width: "w-30" },
-                { key: "level", label: "proficiency", width: "w-20" }]
-              .map(({ key, label, width }) => (
-                <div key={key} className={`jt-td ${width}`} style={{ cursor: "pointer", userSelect: "none" }}
-                     onClick={() => handleSortClick(key)}>
-                  <span className="jt-sort">{sortField === key ? (sortAsc ? "▴" : "▾") : "▾"}</span> {label}
-                </div>
-              ))}
+              { key: "type", label: "type", width: "w-30" },
+              { key: "level", label: "proficiency", width: "w-20" }]
+                .map(({ key, label, width }) => (
+                  <div key={key} className={`jt-td ${width}`} style={{ cursor: "pointer", userSelect: "none" }}
+                    onClick={() => handleSortClick(key)}>
+                    <span className="jt-sort">{sortField === key ? (sortAsc ? "▴" : "▾") : "▾"}</span> {label}
+                  </div>
+                ))}
               <div className="jt-td w-10 ta-right"></div>
             </div>
 
@@ -180,16 +180,23 @@ export default function SkillsPage({ user, onLogout, avatarRef, onProfileClick }
             <form className="jt-form" onSubmit={handleAddSkill}>
               <div className="jt-form-row">
                 <label>skill</label>
-                <input className="jt-input" placeholder="e.g. React.js" value={draft.skill} 
-                       onChange={e => setDraft(d => ({ ...d, skill: e.target.value }))} required />
+                <input className="jt-input" placeholder="e.g. React.js" value={draft.skill}
+                  onChange={e => setDraft(d => ({ ...d, skill: e.target.value }))} required />
               </div>
               <div className="jt-form-row">
                 <label>proficiency level</label>
-                <select className="jt-select" value={draft.level} 
-                        onChange={e => setDraft(d => ({ ...d, level: e.target.value }))} required>
-                  <option value="">select level…</option>
-                  {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
-                </select>
+                <div className="jt-select-wrap">
+                  <select
+                    className="jt-select"
+                    value={draft.level}
+                    onChange={(e) => setDraft(d => ({ ...d, level: e.target.value }))}
+                    required
+                    aria-label="Proficiency level"
+                  >
+                    <option value="">select level…</option>
+                    {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                </div>
               </div>
               <div className="jt-modal-actions">
                 <button type="button" className="jt-ghost" onClick={() => setIsModalOpen(false)}>cancel</button>

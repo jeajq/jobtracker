@@ -229,3 +229,52 @@
 .jt-primary:hover {
   background: rgba(147, 167, 255, 0.22);
 }
+
+.jt-select {
+  width: 100%;
+  background: #2e2d38;         
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,.08);
+  outline: none;
+  padding: 12px 14px;           
+  border-radius: 10px;       
+  font: inherit;
+  line-height: 1.2;
+  -webkit-appearance: none;      
+  -moz-appearance: none;        
+  appearance: none;              
+  padding-right: 42px;           
+}
+
+.jt-select:focus {
+  border-color: #6a6a8b;
+  box-shadow: 0 0 0 2px rgba(106,106,139,.25);
+}
+
+.jt-select-wrap {
+  position: relative;
+}
+
+.jt-select-wrap::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  top: 50%;
+  right: 14px;
+  width: 0;
+  height: 0;
+  transform: translateY(-25%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 7px solid rgba(255,255,255,0.65);
+  opacity: 0.9;
+}
+
+.jt-select:hover {
+  border-color: rgba(255,255,255,.16);
+}
+
+.jt-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
