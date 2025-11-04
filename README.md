@@ -34,7 +34,7 @@ The client’s goal was to create a **centralised job management system** that c
 - Add job and view job applicants feature for employers
 
 ## Tech Stack
-- **Languages:** ReactJS, Tailwind CSS, HTML 
+- **Languages:** Node.js, React, Tailwind CSS, HTML 
 - **Database:** Google Firebase Firestore
 - **Desktop Framework:** Electron
 
