@@ -28,9 +28,10 @@ The client’s goal was to create a **centralised job management system** that c
 - Fully interactive **drag-and-drop Kanban board**
 - Responsive dark UI aligned with modern design standards
 - Store interesting job listings for later
-- Display real listings that can be saved
+- Display real listings that can be saved and applied to
 - Admin dashboard for managing listings and applicant stages
-- Secure login using Firebase Authentication  
+- Secure login using Firebase Authentication
+- Add job and view job applicants feature for employers
 
 ## Tech Stack
 - **Languages:** ReactJS, Tailwind CSS, HTML 
@@ -40,13 +41,13 @@ The client’s goal was to create a **centralised job management system** that c
 ## How to Run 
 ````
 * Download from GitHub Repo
-* Unzip file
-* Open Command Prompt and change the current directory to job-tracker
-* Run "npm install" to download necessary modules
+* Unzip file to your preferred location
+* Open Command Prompt and change the current directory to job-tracker (project root folder)
+* Run "npm install" to download necessary modules, this starts the app at http://localhost:3000
 * Run "npm start" to start server
-* Open a second window of Command Prompt and change the current directory to /server
+* Open a second window of Command Prompt and change the current directory to /server folder
 * Run "npm install" to download necessary modules
-* Run "npm start" to start webscraping
+* Run "npm start" to start webscraping, server should run and retrieve jobs
 ````
 ## Links
 
