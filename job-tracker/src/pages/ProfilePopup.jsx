@@ -56,7 +56,7 @@ export default function ProfilePopup({ open, anchorRef, user, openUserDetails, o
 
       <div style={{ display: "flex", justifyContent: "center", marginTop: "8px" }}>
         <button
-          onClick={openUserDetails} // direct function call
+          onClick={openUserDetails}
           style={{
             backgroundColor: "#5b4bfa",
             color: "#fff",
