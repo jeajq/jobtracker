@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; 
 import { db } from "../lib/firebase";
 import {
   collection,
@@ -7,6 +7,7 @@ import {
   orderBy,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
 } from "firebase/firestore";
 import ApplyJobPopup from "./ApplyJobPopup";
@@ -18,6 +19,7 @@ export default function SavedJobsPage({ user }) {
   const [toast, setToast] = useState(null);
   const [popupJob, setPopupJob] = useState(null);
 
+  // Load saved jobs for the user
   useEffect(() => {
     if (!user?.uid) {
       setSavedJobs([]);
@@ -30,12 +32,26 @@ export default function SavedJobsPage({ user }) {
 
     const unsubscribe = onSnapshot(
       q,
-      (snapshot) => {
+      async (snapshot) => {
         const jobs = snapshot.docs.map((doc) => ({
           firestoreId: doc.id,
           ...doc.data(),
         }));
-        setSavedJobs(jobs);
+
+        // Check which jobs still exist in Firestore (active jobs)
+        const checkedJobs = await Promise.all(
+          jobs.map(async (job) => {
+            if (!job.jobId) return { ...job, deleted: false };
+            const jobRef = doc(db, "jobs", job.jobId);
+            const jobSnap = await getDoc(jobRef);
+            return {
+              ...job,
+              deleted: !jobSnap.exists(),
+            };
+          })
+        );
+
+        setSavedJobs(checkedJobs);
         setLoading(false);
       },
       (err) => {
@@ -48,14 +64,14 @@ export default function SavedJobsPage({ user }) {
     return () => unsubscribe();
   }, [user?.uid]);
 
-  //remove job from saved_jobs and applied_jobs
+  // Remove job from saved_jobs and applied_jobs
   const removeJob = async (job) => {
     if (!job?.firestoreId || !user?.uid) return;
 
     try {
       await deleteDoc(doc(db, "users", user.uid, "saved_jobs", job.firestoreId));
 
-      //delete from applied_jobs if exists (match by URL)
+      // Delete from applied_jobs if same URL
       const appliedSnapshot = await getDocs(
         collection(db, "users", user.uid, "applied_jobs")
       );
@@ -105,17 +121,22 @@ export default function SavedJobsPage({ user }) {
               <div>No saved jobs yet!</div>
               <button
                 className="jt-primary"
-                onClick={() => (window.location.hash ="#search")}
+                onClick={() => (window.location.hash = "#search")}
               >
                 Find Jobs
               </button>
             </div>
           ) : (
             <>
-              <div className="jt-results-head">Saved Jobs ({savedJobs.length})</div>
+              <div className="jt-results-head">
+                Saved Jobs ({savedJobs.length})
+              </div>
               <ul className="jt-list">
                 {savedJobs.map((job) => (
-                  <li className="jt-list-item" key={job.firestoreId}>
+                  <li
+                    className={`jt-list-item ${job.deleted ? "jt-job-deleted" : ""}`}
+                    key={job.firestoreId}
+                  >
                     <div className="jt-list-main">
                       <div className="jt-line">
                         <span className="jt-jobtitle">{job.title}</span>
@@ -124,24 +145,44 @@ export default function SavedJobsPage({ user }) {
                       </div>
                       <div className="jt-role">{job.role}</div>
                       <div className="jt-desc">{job.description}</div>
+
+                      {/* Warning if job deleted */}
+                      {job.deleted && (
+                        <p className="jt-warning-text">
+                          ⚠️ This job is no longer available or was deleted by the employer.
+                        </p>
+                      )}
                     </div>
 
                     <div className="jt-meta">
-                      <span className="jt-date">Date posted: {job.datePosted || "N/A"}</span>
+                      <span className="jt-date">
+                        Date posted: {job.datePosted || "N/A"}
+                      </span>
                       <div className="jt-actions">
+                        {/* Apply button */}
                         <button
                           className="jt-btn-apply"
                           onClick={() => setPopupJob(job)}
-                          disabled={job.applied}
+                          disabled={job.applied || job.deleted}
                         >
-                          {job.applied ? "Applied ✅" : "Apply"}
+                          {job.deleted
+                            ? "Unavailable"
+                            : job.applied
+                            ? "Applied ✅"
+                            : "Apply"}
                         </button>
-                        <button
-                          className="jt-btn-view"
-                          onClick={() => window.open(job.url, "_blank")}
-                        >
-                          View
-                        </button>
+
+                        {/* Only show View if job exists */}
+                        {!job.deleted && (
+                          <button
+                            className="jt-btn-view"
+                            onClick={() => window.open(job.url, "_blank")}
+                          >
+                            View
+                          </button>
+                        )}
+
+                        {/* Delete button */}
                         <button
                           className="jt-btn-save jt-btn-red"
                           title="Remove"
@@ -160,14 +201,16 @@ export default function SavedJobsPage({ user }) {
       </main>
 
       {/* Apply Job Popup */}
-      {popupJob && (
+      {popupJob && !popupJob.deleted && (
         <ApplyJobPopup
           job={popupJob}
           user={user}
           onClose={() => setPopupJob(null)}
           onApplied={(job) => {
             setSavedJobs((prev) =>
-              prev.map((j) => (j.firestoreId === job.firestoreId ? { ...j, applied: true } : j))
+              prev.map((j) =>
+                j.firestoreId === job.firestoreId ? { ...j, applied: true } : j
+              )
             );
             setToast(`✅ Applied to "${job.title}"`);
             setTimeout(() => setToast(null), 4000);

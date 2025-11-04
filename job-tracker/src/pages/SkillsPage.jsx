@@ -36,11 +36,11 @@ export default function SkillsPage({ user }) {
     const q = query.trim().toLowerCase();
     if (!q) return skills;
     return skills.filter(
-      (s) =>
+          (s) =>
         s.skill.toLowerCase().includes(q) ||
         s.type.toLowerCase().includes(q) ||
         s.level.toLowerCase().includes(q)
-    );
+        );
   }, [query, skills]);
 
   function addSkill(e) {
@@ -51,7 +51,7 @@ export default function SkillsPage({ user }) {
       { id: Math.random().toString(36).slice(2, 9), ...draft },
     ]);
     setDraft({ skill: "", type: "", level: "" });
-    setIsModalOpen(false);
+      setIsModalOpen(false);
   }
 
   return (
@@ -104,23 +104,23 @@ export default function SkillsPage({ user }) {
 
       {/* Add Skill Modal */}
       {isModalOpen && (
-  <div className="jt-modal">
+        <div className="jt-modal">
     {/* Render backdrop first so it stays behind the card */}
     <div className="jt-backdrop" onClick={() => setIsModalOpen(false)} />
 
-    <div className="jt-modal-card">
-      <div className="jt-modal-head">Add Skill</div>
+          <div className="jt-modal-card">
+            <div className="jt-modal-head">Add Skill</div>
       <form className="jt-form" onSubmit={addSkill}>
-        <div className="jt-form-row">
-          <label>skill</label>
-          <input
-            className="jt-input"
+              <div className="jt-form-row">
+                <label>skill</label>
+                <input
+                  className="jt-input"
             placeholder="e.g. python"
-            value={draft.skill}
+                  value={draft.skill}
             onChange={(e) => setDraft(d => ({ ...d, skill: e.target.value }))}
-            required
-          />
-        </div>
+                  required
+                />
+              </div>
 
         <div className="jt-form-row">
           <label>type</label>
@@ -135,25 +135,25 @@ export default function SkillsPage({ user }) {
           </select>
         </div>
 
-        <div className="jt-form-row">
-          <label>proficiency level</label>
-          <select
-            className="jt-select"
-            value={draft.level}
+              <div className="jt-form-row">
+                <label>proficiency level</label>
+                <select
+                  className="jt-select"
+                  value={draft.level}
             onChange={(e) => setDraft(d => ({ ...d, level: e.target.value }))}
-            required
-          >
-            <option value="">select level…</option>
+                  required
+                >
+                  <option value="">select level…</option>
             {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
-          </select>
-        </div>
+                </select>
+              </div>
 
-        <div className="jt-modal-actions">
+              <div className="jt-modal-actions">
           <button type="button" className="jt-ghost" onClick={() => setIsModalOpen(false)}>
-            cancel
-          </button>
+                  cancel
+                </button>
           <button type="submit" className="jt-primary">add</button>
-        </div>
+              </div>
             </form>
           </div>
 
