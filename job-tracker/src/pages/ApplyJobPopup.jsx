@@ -8,6 +8,7 @@ import {
   where,
   getDocs,
   updateDoc,
+  doc,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import "../components/job-tracker.css";
@@ -52,8 +53,13 @@ export default function ApplyJobPopup({ job, user, onClose, onApplied }) {
       }
     }
 
-    if (formData.phone.length < 10) {
+    const digitsOnly = formData.phone.replace(/\D/g, "");
+    if (digitsOnly.length < 10) {
       setError("Phone number must be at least 10 digits.");
+      return false;
+    }
+    if (digitsOnly.length > 10) {
+      setError("Phone number cannot be more than 10 digits.");
       return false;
     }
 
@@ -83,7 +89,7 @@ export default function ApplyJobPopup({ job, user, onClose, onApplied }) {
     try {
       setUploading(true);
 
-      //ensure job exists in Firestore db
+      //check if job exists in Firestore db
       let jobRefId = job.jobId || job.firestoreId || null;
       if (!jobRefId) {
         const newJob = await addDoc(collection(db, "jobs"), {
@@ -102,16 +108,17 @@ export default function ApplyJobPopup({ job, user, onClose, onApplied }) {
         jobRefId = newJob.id;
       }
 
-       //upload resume to Firebase storage
+      //upload resume to Firebase storage
       const storageRef = ref(storage, `resumes/${user.uid}/${Date.now()}_${resumeFile.name}`);
-      await uploadBytes(storageRef,resumeFile);
+      await uploadBytes(storageRef, resumeFile);
       const resumeUrl = await getDownloadURL(storageRef);
 
-      //save job first in saved_jobs
+      //save job in saved_jobs (if not exists add to db)
       const savedRef = collection(db, "users", user.uid, "saved_jobs");
       const existing = await getDocs(query(savedRef, where("url", "==", job.url)));
 
       let savedJobId;
+      let appliedId = null; //default null if not applied yet
       if (!existing.empty) {
         const docRef = existing.docs[0].ref;
         await updateDoc(docRef, {
@@ -133,13 +140,14 @@ export default function ApplyJobPopup({ job, user, onClose, onApplied }) {
           savedAt: serverTimestamp(),
           applied: true,
           appliedAt: serverTimestamp(),
+          appliedId: null, // initially null
         });
         savedJobId = newSaved.id;
       }
 
       //add to applied_jobs
       const appliedRef = collection(db, "users", user.uid, "applied_jobs");
-      await addDoc(appliedRef, {
+      const appliedDoc = await addDoc(appliedRef, {
         jobId: jobRefId,
         title: job.title,
         company: job.company,
@@ -150,10 +158,17 @@ export default function ApplyJobPopup({ job, user, onClose, onApplied }) {
         ...formData,
         resumeName: resumeFile.name,
         resumeUrl,
-        linkedSavedId: savedJobId, 
+        linkedSavedId: savedJobId,
       });
 
-      //add to employer’s job record
+      appliedId = appliedDoc.id;
+
+      //update saved_jobs with appliedId
+      await updateDoc(doc(db, "users", user.uid, "saved_jobs", savedJobId), {
+        appliedId,
+      });
+
+      //add to employer’s job record if source is employer
       if (job.source === "employer" && jobRefId) {
         await addDoc(collection(db, "jobs", jobRefId, "applied_jobs"), {
           userId: user.uid,
@@ -165,10 +180,16 @@ export default function ApplyJobPopup({ job, user, onClose, onApplied }) {
         });
       }
 
-      //success feedback
       setSubmitted(true);
+
       if (onApplied)
-        onApplied({ ...job, jobId: jobRefId, firestoreId: savedJobId, applied: true });
+        onApplied({
+          ...job,
+          jobId: jobRefId,
+          firestoreId: savedJobId,
+          applied: true,
+          appliedId,
+        });
 
       setTimeout(onClose, 1500);
     } catch (err) {

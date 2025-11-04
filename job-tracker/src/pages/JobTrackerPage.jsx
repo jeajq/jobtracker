@@ -1,6 +1,6 @@
 // src/components/JobTrackerPage.jsx
 import React, { useEffect, useState, useRef } from "react";
-import "../components/jobBoard.css";
+// import "../components/jobBoard.css";  FIX WHEN jobBoard.css is added
 import Sidebar from "../components/sidebar.jsx";
 import JobColumn from "../components/JobColumn.jsx";
 import { db } from "../lib/firebase.js";
@@ -16,7 +16,6 @@ import {
   serverTimestamp,
   deleteDoc,
 } from "firebase/firestore";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const COLUMNS = [
   { id: "applied", label: "Applied" },

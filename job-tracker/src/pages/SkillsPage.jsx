@@ -12,11 +12,11 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import "../components/skills.css";
+// import "../components/skills.css"; no current skills.css page 
 
 const LEVELS = ["elementary", "intermediate", "advanced", "expert"];
 
-// helper to guess type from skill text
+//helper to guess type from skill text
 function inferType(raw) {
   if (!raw) return "other";
   const s = raw.toLowerCase();

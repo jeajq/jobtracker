@@ -29,14 +29,14 @@ export default function JobSearchPage({ user, onLogout }) {
     setLoading(true);
 
     try {
-      // Firestore employer jobs
+      //Firestore employer jobs
       const jobDocs = await getDocs(collection(db, "jobs"));
       const employerJobs = jobDocs.docs
         .map((docSnap) => {
           const data = docSnap.data();
           return {
-            id: `employer-${docSnap.id}`, // ✅ unique for React/UI
-            jobId: docSnap.id,            // ✅ Firestore doc ID for matching applications
+            id: `employer-${docSnap.id}`,
+            jobId: docSnap.id,
             title: data.title || "Untitled Job",
             company: data.company?.trim() || "Employer Job",
             location: data.location || "Australia",
@@ -54,7 +54,7 @@ export default function JobSearchPage({ user, onLogout }) {
             job.company.toLowerCase().includes(query.toLowerCase())
         );
 
-      // Seek API jobs
+      //seek API jobs
       const response = await axios.get(BASE_URL, { params: { q: query, loc: location } });
       const seekJobs = (response.data || []).map((job, idx) => ({
         id: `seek-${idx}`,
@@ -79,7 +79,7 @@ export default function JobSearchPage({ user, onLogout }) {
     }
   };
 
-  // save job
+  //save job
   const saveJob = async (job) => {
     if (!user?.uid) return alert("Please log in to save jobs.");
 
@@ -88,7 +88,7 @@ export default function JobSearchPage({ user, onLogout }) {
       const q = firestoreQuery(savedJobsRef, where("url", "==", job.url));
       const snapshot = await getDocs(q);
 
-      if (!snapshot.empty) {
+      if (!snapshot.empty) { //job already saved toast
         setToast("⚠️ Job already saved!");
         setTimeout(() => setToast(null), 4000);
         return;
@@ -102,7 +102,7 @@ export default function JobSearchPage({ user, onLogout }) {
         datePosted: job.datePosted,
         role: job.role,
         description: job.description,
-        jobId: job.jobId || null, // store Firestore ID for employer jobs
+        jobId: job.jobId || null, //store Firestore ID for employer jobs
         savedAt: serverTimestamp(),
         applied: job.applied || false,
       });
@@ -170,7 +170,16 @@ export default function JobSearchPage({ user, onLogout }) {
                     <div className="jt-meta">
                       <span className="jt-date">Date posted: {job.datePosted}</span>
                       <div className="jt-actions">
-                        <button className="jt-btn-apply" onClick={() => setPopupJob(job)}>
+                        <button className="jt-btn-apply"
+                          onClick={() => {
+                            if (job.applied) { //job already applied toast
+                              setToast(`⚠️ You have already applied to "${job.title}"`);
+                              setTimeout(() => setToast(null), 4000);
+                            } else {
+                              setPopupJob(job);
+                            }
+                          }}
+                        >
                           {job.applied ? "Applied ✅" : "Apply"}
                         </button>
                         <button className="jt-btn-view" onClick={() => window.open(job.url, "_blank")}>

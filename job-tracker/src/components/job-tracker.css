@@ -1134,3 +1134,57 @@ body,
 .applicant-details-column h3 {
   margin-top: 0;
 }
+/* Saved jobs page: Search and clear btns */
+.jt-btn-search {
+  background-color: #3b82f6;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  flex-shrink: 0;
+}
+
+.jt-btn-search:hover {
+  background-color: #2563eb;
+  transform: scale(1.05);
+}
+
+.jt-btn-clear {
+  background-color: #585858;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  flex-shrink: 0;
+}
+
+.jt-btn-clear:hover {
+  background-color: #747474; 
+  transform: scale(1.05);
+}
+
+.jt-search-form {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  align-items: center;
+}
+
+.jt-search-topbar-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+
+/* .jt-saved-search {
+  flex: 1;
+  min-width: 180px;
+  max-width: 600px;
+} */

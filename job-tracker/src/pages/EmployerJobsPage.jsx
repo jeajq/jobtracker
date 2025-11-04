@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
 import { collection, query, where, onSnapshot, doc, deleteDoc } from "firebase/firestore";
 import "../components/job-tracker.css";
-import Sidebar from "../components/sidebar";
 import AddJob from "./AddJob.jsx";
+import Sidebar from "../components/sidebar.jsx";
 import ViewApplicantsPopup from "./ViewApplicantsPopup.jsx";
 
 export default function EmployerJobsPage({ user, navigate, onLogout }) {
@@ -59,16 +59,6 @@ export default function EmployerJobsPage({ user, navigate, onLogout }) {
   return (
     <div className="jt-app">
        <Sidebar user={user} onLogout={onLogout} />
-      <aside className="jt-sidebar">
-        <div className="jt-logo">job.tracker</div>
-        <nav className="jt-nav">
-          <a className="jt-nav-item active" href="#employer-jobs">
-            View Added Jobs
-          </a>
-        </nav>
-        <div className="jt-logout">Log Out ⟶</div>
-      </aside>
-
       <main className="jt-main">
         <header className="jt-topbar">
           <h2>Jobs You Created</h2>
