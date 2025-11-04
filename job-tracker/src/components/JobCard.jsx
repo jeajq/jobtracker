@@ -1,6 +1,4 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
-import { doc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../lib/firebase";
 import "../components/jobBoard.css";
 
 function safeHref(url) {
@@ -20,17 +18,15 @@ export default function JobCard({ job, onDelete, onAddNote, onDragStart }) {
   const contentRef = useRef(null);
   const panelRef = useRef(null);
 
+  // Expand/collapse animation
   useLayoutEffect(() => {
     const panel = panelRef.current;
     const content = contentRef.current;
     if (!panel || !content) return;
-    if (open) {
-      panel.style.maxHeight = `${content.scrollHeight + 2}px`;
-    } else {
-      panel.style.maxHeight = "0px";
-    }
+    panel.style.maxHeight = open ? `${content.scrollHeight + 2}px` : "0px";
   }, [open, job]);
 
+  // Focus textarea when adding note
   useEffect(() => {
     if (isAddingNote && noteRef.current) {
       const el = noteRef.current;
@@ -44,41 +40,16 @@ export default function JobCard({ job, onDelete, onAddNote, onDragStart }) {
 
   const postingLink = job.sourceLink || job.url || "";
 
-  async function handleSaveNote() {
-    const trimmed = note.trim();
-    await updateDoc(doc(db, "jobs", job.id), {
-      note: trimmed,
-      updatedAt: serverTimestamp(),
-    });
-    onAddNote?.(job.id, trimmed);
-    setIsAddingNote(false);
-  }
-
-  async function handleDelete() {
-    if (!window.confirm(`Delete "${job.title}"?`)) return;
-    await deleteDoc(doc(db, "jobs", job.id));
-    onDelete?.(job.id);
-  }
-
-  const statusDotClass =
-    job.status === "assessment" ? "purple" :
-    job.status === "interview"  ? "green"  :
-    job.status === "offer"      ? "pink"   :
-    job.status === "rejected"   ? "red"    :
-                                  "blue";
-
-  const detailsId = `card-details-${job.id}`;
-
   return (
     <div className="jt-card" draggable onDragStart={(e) => onDragStart?.(e)}>
-      {/* Header (title + 3 dots) */}
+      {/* Header */}
       <div className="jt-card-top">
         <div className="jt-card-title">{job.title || "Untitled role"}</div>
         <button
           type="button"
           className="jt-kebab"
           aria-expanded={open}
-          aria-controls={detailsId}
+          aria-controls={`card-details-${job.id}`}
           title={open ? "Hide details" : "Show details"}
           onClick={() => setOpen(v => !v)}
         >
@@ -86,21 +57,28 @@ export default function JobCard({ job, onDelete, onAddNote, onDragStart }) {
         </button>
       </div>
 
-      {/* Company / status / type */}
+      {/* Company / Status */}
       <div className="jt-field">
         <span className="jt-muted">{job.company || "—"}</span>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div className={`jt-dot ${statusDotClass}`} />
+          <div className={`jt-dot ${
+            job.status === "assessment" ? "purple" :
+            job.status === "interview" ? "green" :
+            job.status === "offer" ? "pink" :
+            job.status === "rejected" ? "red" : "blue"
+          }`} />
           <span className="jt-muted">{job.employmentType || job.type || "—"}</span>
         </div>
       </div>
 
       <div className="jt-date">Date Applied: {job.dateApplied || "—"}</div>
 
+      {/* Display note */}
       {job.note && !isAddingNote && (
         <div className="jt-note">📝 <span>{job.note}</span></div>
       )}
 
+      {/* Add/Edit note */}
       {isAddingNote ? (
         <div className="jt-note-edit">
           <textarea
@@ -110,7 +88,16 @@ export default function JobCard({ job, onDelete, onAddNote, onDragStart }) {
             onChange={(e) => setNote(e.target.value)}
           />
           <div className="jt-note-actions">
-            <button className="jt-primary" onClick={handleSaveNote}>Save</button>
+            <button
+              className="jt-primary"
+              onClick={() => {
+                const trimmed = note.trim();
+                onAddNote?.(job.id, trimmed); // <-- parent handles Firestore update
+                setIsAddingNote(false);
+              }}
+            >
+              Save
+            </button>
             <button className="jt-ghost" onClick={() => setIsAddingNote(false)}>Cancel</button>
           </div>
         </div>
@@ -119,13 +106,18 @@ export default function JobCard({ job, onDelete, onAddNote, onDragStart }) {
           <button className="jt-pill" onClick={() => { setNote(job.note || ""); setIsAddingNote(true); }}>
             Add Note
           </button>
-          <button className="jt-pill jt-btn-red" onClick={handleDelete}>Delete</button>
+          <button
+            className="jt-pill jt-btn-red"
+            onClick={() => onDelete?.(job)}
+          >
+            Delete
+          </button>
         </div>
       )}
 
-      {/* Inline details block under the card */}
+      {/* Inline details */}
       <div
-        id={detailsId}
+        id={`card-details-${job.id}`}
         ref={panelRef}
         className={`jt-card-detail-inline ${open ? "open" : ""}`}
         role="region"

@@ -1,19 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "../components/jobBoard.css";
+import "../components/job-tracker.css";
 import Sidebar from "../components/sidebar.jsx";
 import JobColumn from "../components/JobColumn.jsx";
 import { db } from "../lib/firebase.js";
 import {
   collection,
   onSnapshot,
-  query,
-  where,
-  orderBy,
   writeBatch,
   doc,
   updateDoc,
-  serverTimestamp,
   deleteDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleUser } from "@fortawesome/free-regular-svg-icons";
@@ -35,170 +33,181 @@ export default function JobTrackerPage({ user, onLogout, avatarRef, onProfileCli
     rejected: [],
   });
 
-  const dragRef = React.useRef({ colId: null, index: null });
-  const isUpdating = React.useRef(false);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState(null);
+  const [toast, setToast] = useState(null);
 
-  // Live snapshot per column
+  const dragRef = useRef({ colId: null, index: null });
+  const isUpdating = useRef(false);
+
+  //load applied jobs
   useEffect(() => {
-    const unsubs = COLUMNS.map(({ id }) => {
-      const q = query(collection(db, "jobs"), where("status", "==", id), orderBy("order", "asc"));
-      return onSnapshot(
-        q,
-        (snap) => {
-          if (isUpdating.current) return;
-          const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-          setBoard((prev) => ({ ...prev, [id]: rows }));
-        },
-        (err) => console.error(`[JT] onSnapshot error for ${id}:`, err)
-      );
-    });
+    if (!user?.uid) return;
 
-    return () => unsubs.forEach((u) => u && u());
-  }, []);
+    const jobsRef = collection(db, "users", user.uid, "applied_jobs");
+    const unsubscribe = onSnapshot(
+      jobsRef,
+      (snapshot) => {
+        if (isUpdating.current) return;
 
-  // Drag & drop helpers
-  function handleDragStart(colId, index, e) {
+        const jobs = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            ...data,
+            status: data.status || "applied",
+            position: data.position ?? 0,
+          };
+        });
+
+        const newBoard = { applied: [], assessment: [], interview: [], offer: [], rejected: [] };
+        jobs.forEach((job) => {
+          const col = COLUMNS.find((c) => c.id === job.status) ? job.status : "applied";
+          newBoard[col].push(job);
+        });
+
+        Object.keys(newBoard).forEach((col) => {
+          newBoard[col].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+        });
+
+        setBoard(newBoard);
+      },
+      (err) => console.error("Error fetching applied_jobs:", err)
+    );
+
+    return () => unsubscribe();
+  }, [user?.uid]);
+
+  //Drag & drop
+  const handleDragStart = (colId, index, e) => {
     dragRef.current = { colId, index };
     e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", `${colId}:${index}`);
-  }
+  };
 
-  function handleDropToPosition(targetColId, targetIndex, e) {
+  const handleDropToPosition = (targetColId, targetIndex, e) => {
     e.preventDefault();
     e.stopPropagation();
     const { colId: fromColId, index: fromIndex } = dragRef.current || {};
     if (fromColId == null || fromIndex == null) return;
 
-    if (fromColId === targetColId && (fromIndex === targetIndex || fromIndex + 1 === targetIndex)) {
-      dragRef.current = { colId: null, index: null };
-      return;
-    }
-
     setBoard((prev) => {
       const next = structuredClone(prev);
-      const fromCards = next[fromColId];
-      const toCards = next[targetColId];
-      if (!fromCards[fromIndex]) return prev;
-      const [moved] = fromCards.splice(fromIndex, 1);
-      if (toCards.some((c) => c.id === moved.id)) return prev;
-
+      const [moved] = next[fromColId].splice(fromIndex, 1);
       moved.status = targetColId;
-      const insertIndex =
-        fromColId === targetColId && fromIndex < targetIndex ? targetIndex - 1 : targetIndex;
-      toCards.splice(insertIndex, 0, moved);
-
-      // Persist changes
-      isUpdating.current = true;
-      const batch = writeBatch(db);
-      [fromColId, targetColId].forEach((cid) => {
-        next[cid].forEach((card, idx) => {
-          batch.update(doc(db, "jobs", card.id), {
-            order: idx,
-            status: cid,
-            updatedAt: serverTimestamp(),
-          });
-        });
-      });
-      batch
-        .commit()
-        .catch(console.error)
-        .finally(() => setTimeout(() => (isUpdating.current = false), 300));
-
+      next[targetColId].splice(targetIndex, 0, moved);
+      persistBoard(next);
       return next;
     });
 
     dragRef.current = { colId: null, index: null };
-  }
+  };
 
-  function handleDropToEnd(toColId, e) {
+  const handleDropToEnd = (toColId, e) => {
     e.preventDefault();
-    e.stopPropagation();
     const { colId: fromColId, index: fromIndex } = dragRef.current || {};
     if (fromColId == null || fromIndex == null) return;
 
     setBoard((prev) => {
       const next = structuredClone(prev);
-      const fromCards = next[fromColId];
-      const toCards = next[toColId];
-      if (!fromCards[fromIndex]) return prev;
-
-      const [moved] = fromCards.splice(fromIndex, 1);
-      if (toCards.some((c) => c.id === moved.id)) return prev;
+      const [moved] = next[fromColId].splice(fromIndex, 1);
       moved.status = toColId;
-      toCards.push(moved);
-
-      isUpdating.current = true;
-      const batch = writeBatch(db);
-      [fromColId, toColId].forEach((cid) => {
-        next[cid].forEach((card, idx) => {
-          batch.update(doc(db, "jobs", card.id), {
-            order: idx,
-            status: cid,
-            updatedAt: serverTimestamp(),
-          });
-        });
-      });
-      batch
-        .commit()
-        .catch(console.error)
-        .finally(() => setTimeout(() => (isUpdating.current = false), 300));
-
+      next[toColId].push(moved);
+      persistBoard(next);
       return next;
     });
-  }
 
-  async function handleDeleteJob(id) {
+    dragRef.current = { colId: null, index: null };
+  };
+
+  const persistBoard = (nextBoard) => {
+    isUpdating.current = true;
+    const batch = writeBatch(db);
+    Object.keys(nextBoard).forEach((col) =>
+      nextBoard[col].forEach((job, idx) => {
+        batch.update(doc(db, "users", user.uid, "applied_jobs", job.id), {
+          status: job.status,
+          position: idx,
+          updatedAt: serverTimestamp(),
+        });
+      })
+    );
+    batch.commit().finally(() => setTimeout(() => (isUpdating.current = false), 300));
+  };
+
+  //delete job (also deletes saved job if linked)
+  const handleDeleteJob = async () => {
+    if (!jobToDelete || !user?.uid) return;
+
+    //remove from UI immediately
     setBoard((prev) => {
       const next = { ...prev };
-      for (const col in next) next[col] = next[col].filter((j) => j.id !== id);
+      Object.keys(next).forEach((col) => {
+        next[col] = next[col].filter((j) => j.id !== jobToDelete.id);
+      });
       return next;
     });
-    await deleteDoc(doc(db, "jobs", id));
-  }
 
-  async function handleSaveNote(jobId, noteText) {
+    try {
+      await deleteDoc(doc(db, "users", user.uid, "applied_jobs", jobToDelete.id));
+
+      if (jobToDelete.linkedSavedId) {
+        await deleteDoc(doc(db, "users", user.uid, "saved_jobs", jobToDelete.linkedSavedId));
+      }
+
+      setToast("🗑️ Job deleted successfully!");
+      setTimeout(() => setToast(null), 4000);
+    } catch (err) {
+      console.error("Error deleting job:", err);
+      alert("Failed to delete job.");
+    } finally {
+      setJobToDelete(null);
+      setShowDeletePopup(false);
+    }
+  };
+
+  //save note
+  const handleSaveNote = async (docId, noteText) => {
+    if (!user?.uid || !docId || typeof noteText !== "string") return;
+
     setBoard((prev) => {
       const next = structuredClone(prev);
-      for (const col in next) {
-        next[col] = next[col].map((j) => (j.id === jobId ? { ...j, note: noteText } : j));
-      }
+      Object.keys(next).forEach((col) => {
+        next[col] = next[col].map((job) =>
+          job.id === docId ? { ...job, note: noteText } : job
+        );
+      });
       return next;
     });
+
+    isUpdating.current = true;
     try {
-      await updateDoc(doc(db, "jobs", jobId), { note: noteText, updatedAt: serverTimestamp() });
+      const jobRef = doc(db, "users", user.uid, "applied_jobs", docId);
+      await updateDoc(jobRef, { note: noteText, updatedAt: serverTimestamp() });
     } catch (err) {
-      console.error("note save failed:", err);
-      alert("Couldn't save note");
+      console.error("Error saving note:", err);
+      alert("Failed to save note.");
+    } finally {
+      setTimeout(() => (isUpdating.current = false), 300);
     }
-  }
+  };
 
   return (
     <div className="jt-app">
       <Sidebar user={user} onLogout={onLogout} />
-
       <main className="jt-main">
         <header className="jt-topbar">
           <div className="jt-welcome">
-            {user?.firstName && user?.lastName ? (
-              <h2>
-                Welcome, {user.firstName} {user.lastName}
-              </h2>
-            ) : (
-              <h2>Welcome!</h2>
-            )}
+            <h2>Welcome, {user?.firstName} {user?.lastName}</h2>
           </div>
-
           <div className="jt-topbar-actions">
-            <div
-              title="Profile"
-              ref={avatarRef}
-              onClick={onProfileClick}
-              style={{ cursor: "pointer" }}
-            >
+            <div title="Profile" ref={avatarRef} onClick={onProfileClick} style={{ cursor: "pointer" }}>
               <FontAwesomeIcon icon={faCircleUser} size="lg" />
             </div>
           </div>
         </header>
+
+        {/* Toast popup */}
+        {toast && <div className="toast-success">{toast}</div>}
 
         <section className="jt-board">
           {COLUMNS.map(({ id, label }) => (
@@ -211,11 +220,29 @@ export default function JobTrackerPage({ user, onLogout, avatarRef, onProfileCli
               onDragStart={handleDragStart}
               onDropBefore={(index, e) => handleDropToPosition(id, index, e)}
               onDropEnd={(e) => handleDropToEnd(id, e)}
-              onDelete={handleDeleteJob}
+              onDelete={(job) => { setJobToDelete(job); setShowDeletePopup(true); }}
               onAddNote={handleSaveNote}
             />
           ))}
         </section>
+
+        {showDeletePopup && (
+          <div className="delete-popup-overlay">
+            <div className="delete-popup">
+              <div className="delete-popup-header">
+                <h2>Confirm Deletion</h2>
+                <button className="close-btn" onClick={() => setShowDeletePopup(false)}>×</button>
+              </div>
+              <div className="delete-popup-content">
+                <p>Are you sure you want to delete this job?</p>
+                <div className="delete-popup-buttons">
+                  <button className="delete-job-btn" onClick={handleDeleteJob}>Yes, Delete</button>
+                  <button className="cancel-btn" onClick={() => setShowDeletePopup(false)}>Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

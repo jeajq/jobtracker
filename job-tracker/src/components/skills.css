@@ -178,8 +178,7 @@
   color: rgba(255, 255, 255, 0.68);
 }
 
-.jt-input,
-.jt-select {
+.jt-input {
   width: 100%;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -187,6 +186,17 @@
   color: rgba(255, 255, 255, 0.95);
   padding: 10px 12px;
   outline: none;
+}
+
+.jt-select {
+  background: #353558;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.jt-select option {
+  background: #1c1c28;
+  color: #fff;
 }
 
 .jt-input:focus,
