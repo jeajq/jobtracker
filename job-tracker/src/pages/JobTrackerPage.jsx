@@ -1,10 +1,7 @@
-// src/components/JobTrackerPage.jsx
-import React, { useEffect, useState, useRef } from "react";
-// import "../components/jobBoard.css";  FIX WHEN jobBoard.css is added
+import React, { useEffect, useState } from "react";
+import "../components/jobBoard.css";
 import Sidebar from "../components/sidebar.jsx";
 import JobColumn from "../components/JobColumn.jsx";
-import UserDetailsPage from "./UserDetailsPage.jsx";
-import UserDetailsPopup from "./UserDetailsPopup.jsx";
 import { db } from "../lib/firebase.js";
 import {
   collection,
@@ -18,7 +15,6 @@ import {
   serverTimestamp,
   deleteDoc,
 } from "firebase/firestore";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleUser } from "@fortawesome/free-regular-svg-icons";
 
@@ -30,7 +26,7 @@ const COLUMNS = [
   { id: "rejected", label: "Rejected" },
 ];
 
-export default function JobTrackerPage({ user, onLogout }) {
+export default function JobTrackerPage({ user, onLogout, avatarRef, onProfileClick }) {
   const [board, setBoard] = useState({
     applied: [],
     assessment: [],
@@ -38,26 +34,18 @@ export default function JobTrackerPage({ user, onLogout }) {
     offer: [],
     rejected: [],
   });
-  const [search, setSearch] = useState("");
 
-  const dragRef = useRef({ colId: null, index: null });
-  const isUpdating = useRef(false);
+  const dragRef = React.useRef({ colId: null, index: null });
+  const isUpdating = React.useRef(false);
 
-  const [openPopup, setOpenPopup] = useState(false);
-  const avatarRef = useRef(null);
-  // live snapshot per column
+  // Live snapshot per column
   useEffect(() => {
     const unsubs = COLUMNS.map(({ id }) => {
-      const q = query(
-        collection(db, "jobs"),
-        where("status", "==", id),
-        orderBy("order", "asc")
-      );
-
+      const q = query(collection(db, "jobs"), where("status", "==", id), orderBy("order", "asc"));
       return onSnapshot(
         q,
         (snap) => {
-          if (isUpdating.current) return; // avoid flicker during reorder
+          if (isUpdating.current) return;
           const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
           setBoard((prev) => ({ ...prev, [id]: rows }));
         },
@@ -68,26 +56,20 @@ export default function JobTrackerPage({ user, onLogout }) {
     return () => unsubs.forEach((u) => u && u());
   }, []);
 
-  // drag start
+  // Drag & drop helpers
   function handleDragStart(colId, index, e) {
     dragRef.current = { colId, index };
     e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", `${colId}:${index}`); // firefox safety
+    e.dataTransfer.setData("text/plain", `${colId}:${index}`);
   }
 
-  // drop BEFORE a specific index
   function handleDropToPosition(targetColId, targetIndex, e) {
     e.preventDefault();
     e.stopPropagation();
-
     const { colId: fromColId, index: fromIndex } = dragRef.current || {};
     if (fromColId == null || fromIndex == null) return;
 
-    // no-op drag (drop in same spot)
-    if (
-      fromColId === targetColId &&
-      (fromIndex === targetIndex || fromIndex + 1 === targetIndex)
-    ) {
+    if (fromColId === targetColId && (fromIndex === targetIndex || fromIndex + 1 === targetIndex)) {
       dragRef.current = { colId: null, index: null };
       return;
     }
@@ -96,39 +78,27 @@ export default function JobTrackerPage({ user, onLogout }) {
       const next = structuredClone(prev);
       const fromCards = next[fromColId];
       const toCards = next[targetColId];
-
       if (!fromCards[fromIndex]) return prev;
-
       const [moved] = fromCards.splice(fromIndex, 1);
-
-      // don't insert if it's somehow already in toCards
       if (toCards.some((c) => c.id === moved.id)) return prev;
 
       moved.status = targetColId;
-
       const insertIndex =
-        fromColId === targetColId && fromIndex < targetIndex
-          ? targetIndex - 1
-          : targetIndex;
-
+        fromColId === targetColId && fromIndex < targetIndex ? targetIndex - 1 : targetIndex;
       toCards.splice(insertIndex, 0, moved);
 
-      // persist new order for both affected columns
+      // Persist changes
       isUpdating.current = true;
       const batch = writeBatch(db);
-      const updateCols = new Set([fromColId, targetColId]);
-
-      updateCols.forEach((cid) => {
+      [fromColId, targetColId].forEach((cid) => {
         next[cid].forEach((card, idx) => {
-          const ref = doc(db, "jobs", card.id);
-          batch.update(ref, {
+          batch.update(doc(db, "jobs", card.id), {
             order: idx,
             status: cid,
             updatedAt: serverTimestamp(),
           });
         });
       });
-
       batch
         .commit()
         .catch(console.error)
@@ -140,11 +110,9 @@ export default function JobTrackerPage({ user, onLogout }) {
     dragRef.current = { colId: null, index: null };
   }
 
-  // drop to END of a column
   function handleDropToEnd(toColId, e) {
     e.preventDefault();
     e.stopPropagation();
-
     const { colId: fromColId, index: fromIndex } = dragRef.current || {};
     if (fromColId == null || fromIndex == null) return;
 
@@ -152,33 +120,24 @@ export default function JobTrackerPage({ user, onLogout }) {
       const next = structuredClone(prev);
       const fromCards = next[fromColId];
       const toCards = next[toColId];
-
       if (!fromCards[fromIndex]) return prev;
 
       const [moved] = fromCards.splice(fromIndex, 1);
-
-      // skip duplicate if already in target col
       if (toCards.some((c) => c.id === moved.id)) return prev;
-
       moved.status = toColId;
       toCards.push(moved);
 
-      // persist new order for both cols
       isUpdating.current = true;
       const batch = writeBatch(db);
-      const updateCols = new Set([fromColId, toColId]);
-
-      updateCols.forEach((cid) => {
+      [fromColId, toColId].forEach((cid) => {
         next[cid].forEach((card, idx) => {
-          const ref = doc(db, "jobs", card.id);
-          batch.update(ref, {
+          batch.update(doc(db, "jobs", card.id), {
             order: idx,
             status: cid,
             updatedAt: serverTimestamp(),
           });
         });
       });
-
       batch
         .commit()
         .catch(console.error)
@@ -186,62 +145,32 @@ export default function JobTrackerPage({ user, onLogout }) {
 
       return next;
     });
-
-    dragRef.current = { colId: null, index: null };
   }
 
-
   async function handleDeleteJob(id) {
-    // remove immediately from UI so it feels snappy:
     setBoard((prev) => {
       const next = { ...prev };
-      for (const col in next) {
-        next[col] = next[col].filter((j) => j.id !== id);
-      }
+      for (const col in next) next[col] = next[col].filter((j) => j.id !== id);
       return next;
     });
-
-    // also delete in Firestore to make it permanent
     await deleteDoc(doc(db, "jobs", id));
   }
 
-  // save note locally AND in Firestore
   async function handleSaveNote(jobId, noteText) {
-    // optimistic UI update
     setBoard((prev) => {
       const next = structuredClone(prev);
       for (const col in next) {
-        next[col] = next[col].map((j) =>
-          j.id === jobId ? { ...j, note: noteText } : j
-        );
+        next[col] = next[col].map((j) => (j.id === jobId ? { ...j, note: noteText } : j));
       }
       return next;
     });
-
-    // persist to Firestore
     try {
-      await updateDoc(doc(db, "jobs", jobId), {
-        note: noteText,
-        updatedAt: serverTimestamp(),
-      });
+      await updateDoc(doc(db, "jobs", jobId), { note: noteText, updatedAt: serverTimestamp() });
     } catch (err) {
       console.error("note save failed:", err);
       alert("Couldn't save note");
     }
   }
-
-  // search filter
-  const filtered = (cards) => {
-    const q = search.trim().toLowerCase();
-    if (!q) return cards;
-    return cards.filter(
-      (c) =>
-        (c.title || "").toLowerCase().includes(q) ||
-        (c.company || "").toLowerCase().includes(q) ||
-        (c.type || "").toLowerCase().includes(q) ||
-        (c.description || "").toLowerCase().includes(q)
-    );
-  };
 
   return (
     <div className="jt-app">
@@ -249,31 +178,25 @@ export default function JobTrackerPage({ user, onLogout }) {
 
       <main className="jt-main">
         <header className="jt-topbar">
-          <input
-            className="jt-search"
-            placeholder="Search jobs..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+          <div className="jt-welcome">
+            {user?.firstName && user?.lastName ? (
+              <h2>
+                Welcome, {user.firstName} {user.lastName}
+              </h2>
+            ) : (
+              <h2>Welcome!</h2>
+            )}
+          </div>
+
           <div className="jt-topbar-actions">
-            <div 
-                // className="jt-avatar"
-                title="Profile"
-                ref={avatarRef}
-                onClick={() => setOpenPopup(!openPopup)}
+            <div
+              title="Profile"
+              ref={avatarRef}
+              onClick={onProfileClick}
+              style={{ cursor: "pointer" }}
             >
-                <FontAwesomeIcon icon={faCircleUser} size="lg" />
+              <FontAwesomeIcon icon={faCircleUser} size="lg" />
             </div>
-            <div className="jt-gear" title="Settings">
-              ⚙︎
-            </div>
-            <UserDetailsPopup
-              open={openPopup}
-              anchorRef={avatarRef}
-              user={user}
-            //   onEdit={() => alert("Open profile settings")}
-              onClose={() => setOpenPopup(false)}
-            />
           </div>
         </header>
 
@@ -283,7 +206,7 @@ export default function JobTrackerPage({ user, onLogout }) {
               key={id}
               id={id}
               title={label}
-              cards={filtered(board[id])}
+              cards={board[id]}
               count={board[id].length}
               onDragStart={handleDragStart}
               onDropBefore={(index, e) => handleDropToPosition(id, index, e)}

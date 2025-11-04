@@ -1,62 +1,94 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Login from "./pages/Login";
 import JobTrackerPage from "./pages/JobTrackerPage";
 import JobSearchPage from "./pages/JobSearchPage";
 import SkillsPage from "./pages/SkillsPage";
 import SavedJobsPage from "./pages/SavedJobsPage";
 import EmployerJobsPage from "./pages/EmployerJobsPage";
-import UserDetailsPage from "./pages/UserDetailsPage";
+import ProfilePopup from "./pages/ProfilePopup";
+import UserDetailsPopup from "./pages/UserDetailsPopup";
 
 export default function App() {
-  const [user, setUser] = useState(null); // logged-in user info
+  const [user, setUser] = useState(null);
   const [tab, setTab] = useState(window.location.hash || "#board");
 
-  // track hash changes
+  // Popups
+  const [openPopup, setOpenPopup] = useState({
+    profile: false,
+    userDetails: false,
+  });
+
+  const avatarRef = useRef();
+
+  // Track hash
   useEffect(() => {
     const onHashChange = () => setTab(window.location.hash || "#board");
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  // when user not logged in
-  if (!user) {
-    return <Login onLogin={(userData) => setUser(userData)} />;
-  }
-
-  function logout() {
+  const logout = () => {
     setUser(null);
     window.location.hash = "";
-  }
-
-  // ensure user object always has an ID (uid or doc id)
-  const userWithId = {
-    ...user,
-    id: user.id || user.uid || null,
   };
 
-  // handle employer view safely
+  if (!user) return <Login onLogin={setUser} />;
+
+  const userWithId = { ...user, id: user.id || user.uid || null };
+
+  // Determine current page
+  let CurrentPage;
   if (userWithId.type === "employer") {
-    // redirect once only, not on every render
+    CurrentPage = EmployerJobsPage;
     if (tab !== "#employer-jobs") {
       window.location.hash = "#employer-jobs";
       setTab("#employer-jobs");
-      return null; // prevent flicker while redirecting
+      return null;
     }
-    return <EmployerJobsPage user={userWithId} onLogout={logout} />;
+  } else {
+    switch (tab) {
+      case "#search":
+        CurrentPage = JobSearchPage;
+        break;
+      case "#saved":
+        CurrentPage = SavedJobsPage;
+        break;
+      case "#skills":
+        CurrentPage = SkillsPage;
+        break;
+      default:
+        CurrentPage = JobTrackerPage;
+    }
   }
 
-  // switch for normal user
-  switch (tab) {
-    case "#search":
-      return <JobSearchPage user={userWithId} onLogout={logout} />;
-    case "#saved":
-      return <SavedJobsPage user={userWithId} onLogout={logout} />;
-    case "#skills":
-      return <SkillsPage user={userWithId} onLogout={logout} />;
-    case "#profile":
-      return <UserDetailsPage user={userWithId} onLogout={logout} />;
-    default:
-      return <JobTrackerPage user={userWithId} onLogout={logout} />;
-  }
+  // Functions to toggle popups
+  const openProfile = () => setOpenPopup({ profile: true, userDetails: false });
+  const openUserDetails = () =>
+    setOpenPopup({ profile: false, userDetails: true });
+  const closeAll = () => setOpenPopup({ profile: false, userDetails: false });
 
+  return (
+    <>
+      <CurrentPage
+        user={userWithId}
+        onLogout={logout}
+        avatarRef={avatarRef}
+        onProfileClick={openProfile} // open profile popup
+      />
+
+      <ProfilePopup
+        open={openPopup.profile}
+        anchorRef={avatarRef}
+        user={userWithId}
+        openUserDetails={openUserDetails} // <-- direct function
+        onClose={closeAll}
+      />
+
+      <UserDetailsPopup
+        open={openPopup.userDetails}
+        user={userWithId}
+        onClose={closeAll}
+      />
+    </>
+  );
 }
