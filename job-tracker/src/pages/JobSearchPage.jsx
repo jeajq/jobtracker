@@ -36,7 +36,7 @@ export default function JobSearchPage({ user, onLogout }) {
           const data = docSnap.data();
           return {
             id: `employer-${docSnap.id}`,
-            firestoreId: docSnap.id,
+            jobId: docSnap.id,
             title: data.title || "Untitled Job",
             company: data.company?.trim() || "Employer Job",
             location: data.location || "Australia",
@@ -58,6 +58,7 @@ export default function JobSearchPage({ user, onLogout }) {
       const response = await axios.get(BASE_URL, { params: { q: query, loc: location } });
       const seekJobs = (response.data || []).map((job, idx) => ({
         id: `seek-${idx}`,
+        jobId: null,
         title: job.title,
         company: job.company || "Unknown Company",
         location: job.location || location,
@@ -66,7 +67,6 @@ export default function JobSearchPage({ user, onLogout }) {
         role: "N/A",
         description: "Click to view full listing.",
         applied: false,
-        firestoreId: null,
         source: "seek",
       }));
 
@@ -79,7 +79,7 @@ export default function JobSearchPage({ user, onLogout }) {
     }
   };
 
-   //save job
+  //save job
   const saveJob = async (job) => {
     if (!user?.uid) return alert("Please log in to save jobs.");
 
@@ -88,7 +88,7 @@ export default function JobSearchPage({ user, onLogout }) {
       const q = firestoreQuery(savedJobsRef, where("url", "==", job.url));
       const snapshot = await getDocs(q);
 
-      if (!snapshot.empty) {
+      if (!snapshot.empty) { //job already saved toast
         setToast("⚠️ Job already saved!");
         setTimeout(() => setToast(null), 4000);
         return;
@@ -102,6 +102,7 @@ export default function JobSearchPage({ user, onLogout }) {
         datePosted: job.datePosted,
         role: job.role,
         description: job.description,
+        jobId: job.jobId || null, //store Firestore ID for employer jobs
         savedAt: serverTimestamp(),
         applied: job.applied || false,
       });
@@ -169,7 +170,16 @@ export default function JobSearchPage({ user, onLogout }) {
                     <div className="jt-meta">
                       <span className="jt-date">Date posted: {job.datePosted}</span>
                       <div className="jt-actions">
-                        <button className="jt-btn-apply" onClick={() => setPopupJob(job)}>
+                        <button className="jt-btn-apply"
+                          onClick={() => {
+                            if (job.applied) { //job already applied toast
+                              setToast(`⚠️ You have already applied to "${job.title}"`);
+                              setTimeout(() => setToast(null), 4000);
+                            } else {
+                              setPopupJob(job);
+                            }
+                          }}
+                        >
                           {job.applied ? "Applied ✅" : "Apply"}
                         </button>
                         <button className="jt-btn-view" onClick={() => window.open(job.url, "_blank")}>
@@ -189,24 +199,21 @@ export default function JobSearchPage({ user, onLogout }) {
       </main>
 
       {/* Apply Job Popup */}
-        {popupJob && (
-          <>
-            {console.log("Current user passed to ApplyJobPopup:", user)}
-            <ApplyJobPopup
-              job={popupJob}
-              user={user}
-              onClose={() => setPopupJob(null)}
-              onApplied={(job) => {
-                setResults(prev =>
-                  prev.map(j => j.id === job.id ? { ...j, applied: true } : j)
-                );
-                setToast(`✅ Applied to "${job.title}"`);
-                setTimeout(() => setToast(null), 4000);
-              }}
-            />
-          </>
-        )}
-        
+      {popupJob && (
+        <ApplyJobPopup
+          job={popupJob}
+          user={user}
+          onClose={() => setPopupJob(null)}
+          onApplied={(job) => {
+            setResults(prev =>
+              prev.map(j => j.id === job.id ? { ...j, applied: true } : j)
+            );
+            setToast(`✅ Applied to "${job.title}"`);
+            setTimeout(() => setToast(null), 4000);
+          }}
+        />
+      )}
+
       {toast && <div className="toast-success">{toast}</div>}
     </div>
   );

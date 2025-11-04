@@ -1,6 +1,6 @@
 // src/components/JobTrackerPage.jsx
 import React, { useEffect, useState, useRef } from "react";
-import "../components/job-tracker.css";
+// import "../components/jobBoard.css";  FIX WHEN jobBoard.css is added
 import Sidebar from "../components/sidebar.jsx";
 import JobColumn from "../components/JobColumn.jsx";
 import UserDetailsPage from "./UserDetailsPage.jsx";

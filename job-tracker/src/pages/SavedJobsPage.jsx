@@ -8,20 +8,25 @@ import {
   orderBy,
   deleteDoc,
   doc,
-  getDocs,
+  getDoc,
 } from "firebase/firestore";
 import ApplyJobPopup from "./ApplyJobPopup";
 import "../components/job-tracker.css";
 
 export default function SavedJobsPage({ user, onLogout }) {
   const [savedJobs, setSavedJobs] = useState([]);
+  const [filteredJobs, setFilteredJobs] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
   const [popupJob, setPopupJob] = useState(null);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState(null);
 
   useEffect(() => {
     if (!user?.uid) {
       setSavedJobs([]);
+      setFilteredJobs([]);
       setLoading(false);
       return;
     }
@@ -31,17 +36,32 @@ export default function SavedJobsPage({ user, onLogout }) {
 
     const unsubscribe = onSnapshot(
       q,
-      (snapshot) => {
+      async (snapshot) => {
         const jobs = snapshot.docs.map((doc) => ({
           firestoreId: doc.id,
           ...doc.data(),
         }));
-        setSavedJobs(jobs);
+
+        const checkedJobs = await Promise.all(
+          jobs.map(async (job) => {
+            if (!job.jobId) return { ...job, deleted: false };
+            const jobRef = doc(db, "jobs", job.jobId);
+            const jobSnap = await getDoc(jobRef);
+            return {
+              ...job,
+              deleted: !jobSnap.exists(),
+            };
+          })
+        );
+
+        setSavedJobs(checkedJobs);
+        setFilteredJobs(checkedJobs);
         setLoading(false);
       },
       (err) => {
         console.error("Error fetching saved jobs:", err);
         setSavedJobs([]);
+        setFilteredJobs([]);
         setLoading(false);
       }
     );
@@ -49,29 +69,48 @@ export default function SavedJobsPage({ user, onLogout }) {
     return () => unsubscribe();
   }, [user?.uid]);
 
-  //remove job from saved_jobs and applied_jobs
+  const handleSearch = (e) => {
+    e?.preventDefault();
+    if (!searchTerm.trim()) {
+      setFilteredJobs(savedJobs);
+      return;
+    }
+    const lower = searchTerm.toLowerCase();
+    const filtered = savedJobs.filter(
+      (job) =>
+        job.title?.toLowerCase().includes(lower) ||
+        job.company?.toLowerCase().includes(lower) ||
+        job.role?.toLowerCase().includes(lower)
+    );
+    setFilteredJobs(filtered);
+  };
+
+  const clearSearch = () => {
+    setSearchTerm("");
+    setFilteredJobs(savedJobs);
+  };
+
   const removeJob = async (job) => {
     if (!job?.firestoreId || !user?.uid) return;
-
     try {
       await deleteDoc(doc(db, "users", user.uid, "saved_jobs", job.firestoreId));
-
-      //delete from applied_jobs if exists (match by URL)
-      const appliedSnapshot = await getDocs(
-        collection(db, "users", user.uid, "applied_jobs")
-      );
-      const appliedDeletes = appliedSnapshot.docs
-        .filter((d) => d.data().url === job.url)
-        .map((d) => deleteDoc(doc(db, "users", user.uid, "applied_jobs", d.id)));
-
-      await Promise.all(appliedDeletes);
-
+      if (job.appliedId) {
+        await deleteDoc(doc(db, "users", user.uid, "applied_jobs", job.appliedId));
+      }
       setToast("✅ Job removed successfully!");
       setTimeout(() => setToast(null), 4000);
     } catch (err) {
       console.error("Error removing job:", err);
       alert("Failed to remove job.");
     }
+  };
+
+  const handleDeleteJob = () => {
+    if (jobToDelete) {
+      removeJob(jobToDelete); //uses existing removeJob function
+      setJobToDelete(null);
+    }
+    setShowDeletePopup(false);
   };
 
   if (loading) {
@@ -85,31 +124,52 @@ export default function SavedJobsPage({ user, onLogout }) {
 
   return (
     <div className="jt-app">
-       <Sidebar user={user} onLogout={onLogout} />
+      <Sidebar user={user} onLogout={onLogout} />
 
       <main className="jt-main">
-        <aside className="jt-sidebar"></aside>
         <header className="jt-topbar">
-          <input className="jt-search" placeholder="Search saved jobs..." />
+          <form onSubmit={handleSearch} className="jt-search-form">
+            <input
+              className="jt-search"
+              placeholder="Search saved or applied jobs..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <div className="jt-topbar-actions">
+              <button type="submit" className="jt-btn-search">
+                🔍 Search
+              </button>
+              {searchTerm && (
+                <button type="button" className="jt-btn-clear" onClick={clearSearch}>
+                  ✖ Clear
+                </button>
+              )}
+            </div>
+          </form>
         </header>
 
         <section className="jt-results scrollable">
-          {savedJobs.length === 0 ? (
+          {filteredJobs.length === 0 ? (
             <div className="jt-empty-center">
-              <div>No saved jobs yet!</div>
-              <button
-                className="jt-primary"
-                onClick={() => (window.location.hash ="#search")}
-              >
-                Find Jobs
-              </button>
+              <div>{searchTerm ? "No matching jobs found." : "No saved jobs yet!"}</div>
+              {!searchTerm && (
+                <button
+                  className="jt-primary"
+                  onClick={() => (window.location.hash = "#search")}
+                >
+                  Find Jobs
+                </button>
+              )}
             </div>
           ) : (
             <>
-              <div className="jt-results-head">Saved Jobs ({savedJobs.length})</div>
+              <div className="jt-results-head">Saved Jobs ({filteredJobs.length})</div>
               <ul className="jt-list">
-                {savedJobs.map((job) => (
-                  <li className="jt-list-item" key={job.firestoreId}>
+                {filteredJobs.map((job) => (
+                  <li
+                    className={`jt-list-item ${job.deleted ? "jt-job-deleted" : ""}`}
+                    key={job.firestoreId}
+                  >
                     <div className="jt-list-main">
                       <div className="jt-line">
                         <span className="jt-jobtitle">{job.title}</span>
@@ -118,6 +178,12 @@ export default function SavedJobsPage({ user, onLogout }) {
                       </div>
                       <div className="jt-role">{job.role}</div>
                       <div className="jt-desc">{job.description}</div>
+
+                      {job.deleted && (
+                        <p className="jt-warning-text">
+                          ⚠️ This job is no longer available or was deleted by the employer.
+                        </p>
+                      )}
                     </div>
 
                     <div className="jt-meta">
@@ -125,21 +191,39 @@ export default function SavedJobsPage({ user, onLogout }) {
                       <div className="jt-actions">
                         <button
                           className="jt-btn-apply"
-                          onClick={() => setPopupJob(job)}
-                          disabled={job.applied}
+                          onClick={() => {
+                            if (job.applied) {
+                              setToast(`⚠️ You have already applied to "${job.title}"`);
+                              setTimeout(() => setToast(null), 4000);
+                            } else if (!job.deleted) {
+                              setPopupJob(job);
+                            }
+                          }}
+                          disabled={job.applied || job.deleted}
                         >
-                          {job.applied ? "Applied ✅" : "Apply"}
+                          {job.deleted
+                            ? "Unavailable"
+                            : job.applied
+                            ? "Applied ✅"
+                            : "Apply"}
                         </button>
-                        <button
-                          className="jt-btn-view"
-                          onClick={() => window.open(job.url, "_blank")}
-                        >
-                          View
-                        </button>
+
+                        {!job.deleted && (
+                          <button
+                            className="jt-btn-view"
+                            onClick={() => window.open(job.url, "_blank")}
+                          >
+                            View
+                          </button>
+                        )}
+
                         <button
                           className="jt-btn-save jt-btn-red"
                           title="Remove"
-                          onClick={() => removeJob(job)}
+                          onClick={() => {
+                            setJobToDelete(job);
+                            setShowDeletePopup(true);
+                          }}
                         >
                           🗑️ Delete
                         </button>
@@ -148,20 +232,52 @@ export default function SavedJobsPage({ user, onLogout }) {
                   </li>
                 ))}
               </ul>
+                {showDeletePopup && (
+                  <div className="delete-popup-overlay">
+                    <div className="delete-popup">
+                      <div className="delete-popup-header">
+                        <h2>Confirm Deletion</h2>
+                        <button
+                          className="close-btn"
+                          onClick={() => setShowDeletePopup(false)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <div className="delete-popup-content">
+                        <p>Are you sure you want to delete this job?</p>
+                        <div className="delete-popup-buttons">
+                          <button className="delete-job-btn" onClick={handleDeleteJob}>
+                            Yes, Delete
+                          </button>
+                          <button
+                            className="cancel-btn"
+                            onClick={() => setShowDeletePopup(false)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
             </>
           )}
         </section>
       </main>
 
-      {/* Apply Job Popup */}
-      {popupJob && (
+      {popupJob && !popupJob.deleted && (
         <ApplyJobPopup
           job={popupJob}
           user={user}
           onClose={() => setPopupJob(null)}
           onApplied={(job) => {
             setSavedJobs((prev) =>
-              prev.map((j) => (j.firestoreId === job.firestoreId ? { ...j, applied: true } : j))
+              prev.map((j) =>
+                j.firestoreId === job.firestoreId
+                  ? { ...j, applied: true, appliedId: job.appliedId }
+                  : j
+              )
             );
             setToast(`✅ Applied to "${job.title}"`);
             setTimeout(() => setToast(null), 4000);
