@@ -40,14 +40,17 @@ The client’s goal was to create a **centralised job management system** that c
 
 ## How to Run 
 ````
-* Download from GitHub Repo
-* Unzip file to your preferred location
-* Open Command Prompt and change the current directory to job-tracker (project root folder)
-* Run "npm install" to download necessary modules, this starts the app at http://localhost:3000
-* Run "npm start" to start server
-* Open a second window of Command Prompt and change the current directory to /server folder
-* Run "npm install" to download necessary modules
-* Run "npm start" to start webscraping, server should run and retrieve jobs
+1. Download from GitHub Repo
+2. Unzip file to your preferred location
+3. Open Command Prompt and change the current directory to job-tracker (project root folder)
+4. Run "npm install" to download necessary modules, this starts the app at http://localhost:3000
+5. Run "npm start" to start server
+6. Open a second window of Command Prompt and change the current directory to /server folder
+7. Run "npm install" to download necessary modules
+8. Run "npm start" to start webscraping, server should run and retrieve jobs
+9. Open another Command Prompt and change the current directory to job-tracker
+10. Run "npm run electron-start" to launch desktop application window (must be done after step 5)
+
 ````
 ## Links
 
