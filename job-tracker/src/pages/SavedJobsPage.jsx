@@ -95,10 +95,14 @@ export default function SavedJobsPage({ user, onLogout, avatarRef, onProfileClic
   const removeJob = async (job) => {
     if (!job?.firestoreId || !user?.uid) return;
     try {
+      //delete from saved_jobs
       await deleteDoc(doc(db, "users", user.uid, "saved_jobs", job.firestoreId));
-      if (job.appliedId) {
-        await deleteDoc(doc(db, "users", user.uid, "applied_jobs", job.appliedId));
+
+      //if this saved job was applied, delete applied job too
+      if (job.linkedAppliedId) {
+        await deleteDoc(doc(db, "users", user.uid, "applied_jobs", job.linkedAppliedId));
       }
+
       setToast("✅ Job removed successfully!");
       setTimeout(() => setToast(null), 4000);
     } catch (err) {
@@ -130,7 +134,7 @@ export default function SavedJobsPage({ user, onLogout, avatarRef, onProfileClic
 
       <main className="jt-main">
         <header className="saved-jobs-topbar">
-          {/* Left section: search bar + buttons */}
+          {/* left section: search bar + buttons */}
           <div className="saved-jobs-topbar-left">
             <form onSubmit={handleSearch} className="jt-search-form">
               <input
@@ -198,7 +202,7 @@ export default function SavedJobsPage({ user, onLogout, avatarRef, onProfileClic
                       <div className="jt-role">{job.role}</div>
                       <div className="jt-desc">{job.description}</div>
 
-                      {job.deleted && (
+                      {job.deleted && ( //if employer deletes job, give warning to user
                         <p className="jt-warning-text">
                           ⚠️ This job is no longer available or was deleted by the employer.
                         </p>
@@ -211,14 +215,14 @@ export default function SavedJobsPage({ user, onLogout, avatarRef, onProfileClic
                         <button
                           className="jt-btn-apply"
                           onClick={() => {
-                            if (job.applied) {
+                            if (job.applied) { //if job exists in applied_jobs show toast -> user has to delete the job
                               setToast(`⚠️ You have already applied to "${job.title}"`);
                               setTimeout(() => setToast(null), 4000);
                             } else if (!job.deleted) {
                               setPopupJob(job);
                             }
                           }}
-                          disabled={job.applied || job.deleted}
+                          disabled={job.applied || job.deleted} //disables apply button
                         >
                           {job.deleted
                             ? "Unavailable"
@@ -264,7 +268,8 @@ export default function SavedJobsPage({ user, onLogout, avatarRef, onProfileClic
                         ×
                       </button>
                     </div>
-                    <div className="delete-popup-content">
+                    {/* Delete confirmation */}
+                    <div className="delete-popup-content"> 
                       <p>Are you sure you want to delete this job?</p>
                       <div className="delete-popup-buttons">
                         <button className="delete-job-btn" onClick={handleDeleteJob}>
