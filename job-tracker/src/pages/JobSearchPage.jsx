@@ -29,14 +29,14 @@ export default function JobSearchPage({ user, onLogout }) {
     setLoading(true);
 
     try {
-      //Firestore employer jobs
+      // Firestore employer jobs
       const jobDocs = await getDocs(collection(db, "jobs"));
       const employerJobs = jobDocs.docs
         .map((docSnap) => {
           const data = docSnap.data();
           return {
-            id: `employer-${docSnap.id}`,
-            firestoreId: docSnap.id,
+            id: `employer-${docSnap.id}`, // ✅ unique for React/UI
+            jobId: docSnap.id,            // ✅ Firestore doc ID for matching applications
             title: data.title || "Untitled Job",
             company: data.company?.trim() || "Employer Job",
             location: data.location || "Australia",
@@ -54,10 +54,11 @@ export default function JobSearchPage({ user, onLogout }) {
             job.company.toLowerCase().includes(query.toLowerCase())
         );
 
-      //seek API jobs
+      // Seek API jobs
       const response = await axios.get(BASE_URL, { params: { q: query, loc: location } });
       const seekJobs = (response.data || []).map((job, idx) => ({
         id: `seek-${idx}`,
+        jobId: null,
         title: job.title,
         company: job.company || "Unknown Company",
         location: job.location || location,
@@ -66,7 +67,6 @@ export default function JobSearchPage({ user, onLogout }) {
         role: "N/A",
         description: "Click to view full listing.",
         applied: false,
-        firestoreId: null,
         source: "seek",
       }));
 
@@ -79,7 +79,7 @@ export default function JobSearchPage({ user, onLogout }) {
     }
   };
 
-   //save job
+  // save job
   const saveJob = async (job) => {
     if (!user?.uid) return alert("Please log in to save jobs.");
 
@@ -102,6 +102,7 @@ export default function JobSearchPage({ user, onLogout }) {
         datePosted: job.datePosted,
         role: job.role,
         description: job.description,
+        jobId: job.jobId || null, // store Firestore ID for employer jobs
         savedAt: serverTimestamp(),
         applied: job.applied || false,
       });
@@ -189,24 +190,21 @@ export default function JobSearchPage({ user, onLogout }) {
       </main>
 
       {/* Apply Job Popup */}
-        {popupJob && (
-          <>
-            {console.log("Current user passed to ApplyJobPopup:", user)}
-            <ApplyJobPopup
-              job={popupJob}
-              user={user}
-              onClose={() => setPopupJob(null)}
-              onApplied={(job) => {
-                setResults(prev =>
-                  prev.map(j => j.id === job.id ? { ...j, applied: true } : j)
-                );
-                setToast(`✅ Applied to "${job.title}"`);
-                setTimeout(() => setToast(null), 4000);
-              }}
-            />
-          </>
-        )}
-        
+      {popupJob && (
+        <ApplyJobPopup
+          job={popupJob}
+          user={user}
+          onClose={() => setPopupJob(null)}
+          onApplied={(job) => {
+            setResults(prev =>
+              prev.map(j => j.id === job.id ? { ...j, applied: true } : j)
+            );
+            setToast(`✅ Applied to "${job.title}"`);
+            setTimeout(() => setToast(null), 4000);
+          }}
+        />
+      )}
+
       {toast && <div className="toast-success">{toast}</div>}
     </div>
   );

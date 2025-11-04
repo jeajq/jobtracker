@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { db } from "../lib/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, updateDoc } from "firebase/firestore";
 import "../components/job-tracker.css";
 
 export default function AddJob({ onClose, onAdd, user }) {
   const [formData, setFormData] = useState({
     title: "",
-    company: "", 
+    company: "",
     type: "",
     rate: "",
     deadline: "",
@@ -66,20 +66,25 @@ export default function AddJob({ onClose, onAdd, user }) {
 
       const jobData = {
         ...formData,
-        company: formData.company.trim(), 
+        company: formData.company.trim(),
         createdBy: user.email,
         createdAt: serverTimestamp(),
-        source: "employer", //distinguish employer jobs
+        source: "employer",
       };
 
+      // Add job
       const docRef = await addDoc(jobsCollection, jobData);
 
-      if (onAdd) onAdd({ id: docRef.id, ...jobData });
+      // Update jobId in the document
+      await updateDoc(doc(db, "jobs", docRef.id), { jobId: docRef.id });
+
+      // Notify parent (optional)
+      if (onAdd) onAdd(); // just close popup if parent uses onSnapshot
 
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
 
-      // reset form
+      // Reset form
       setFormData({
         title: "",
         company: "",
@@ -94,11 +99,13 @@ export default function AddJob({ onClose, onAdd, user }) {
         email: "",
         url: "",
       });
+      setError("");
     } catch (err) {
       console.error("Error adding job:", err);
       setError("Failed to add job. Please try again.");
     }
   };
+
 
   return (
     <div className="addjob-popup-overlay">
@@ -122,7 +129,7 @@ export default function AddJob({ onClose, onAdd, user }) {
               <input
                 type="text"
                 name="company"
-                placeholder="Company Name" 
+                placeholder="Company Name"
                 value={formData.company}
                 onChange={handleChange}
                 required
@@ -224,7 +231,14 @@ export default function AddJob({ onClose, onAdd, user }) {
             </div>
 
             {error && (
-              <div className="form-error" style={{ color: "red", marginTop: "15px", textAlign: "center" }}>
+              <div
+                className="form-error"
+                style={{
+                  color: "red",
+                  marginTop: "15px",
+                  textAlign: "center",
+                }}
+              >
                 {error}
               </div>
             )}
@@ -241,7 +255,9 @@ export default function AddJob({ onClose, onAdd, user }) {
               {(formData.address || formData.state || formData.postcode) && (
                 <p>
                   <strong>Address:</strong>{" "}
-                  {[formData.address, formData.state, formData.postcode].filter(Boolean).join(", ")}
+                  {[formData.address, formData.state, formData.postcode]
+                    .filter(Boolean)
+                    .join(", ")}
                 </p>
               )}
               <p>{formData.description || "Job description will appear here..."}</p>
@@ -252,11 +268,12 @@ export default function AddJob({ onClose, onAdd, user }) {
           </div>
         </div>
       </div>
+
       {showToast && (
-            <div className="toast-success">
-              <span>✅ Job added successfully!</span>
-            </div>
-          )}
+        <div className="toast-success">
+          <span>✅ Job added successfully!</span>
+        </div>
+      )}
     </div>
   );
 }
