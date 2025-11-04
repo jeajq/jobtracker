@@ -33,8 +33,6 @@ export default function SkillsPage({ user, onLogout, avatarRef, onProfileClick }
   const [skills, setSkills] = useState([]);
   const [sortField, setSortField] = useState(null); 
   const [sortAsc, setSortAsc] = useState(true);
-
-  // delete modal state
   const [skillToDelete, setSkillToDelete] = useState(null);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
 
@@ -85,7 +83,7 @@ export default function SkillsPage({ user, onLogout, avatarRef, onProfileClick }
     }
   }
 
-  // triggers when user confirms delete in modal
+  //triggers when user confirms delete
   const handleDeleteSkill = async () => {
     if (!skillToDelete || !user?.uid) return;
     try {

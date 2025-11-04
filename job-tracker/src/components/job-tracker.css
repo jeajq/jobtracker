@@ -1276,8 +1276,6 @@ User applying to job with resume upload
   cursor: not-allowed;
 }
 
-
-
 .saved-jobs-topbar {
   height: var(--topbar-h);
   min-height: var(--topbar-h);

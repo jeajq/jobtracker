@@ -72,19 +72,18 @@ export default function AddJob({ onClose, onAdd, user }) {
         source: "employer",
       };
 
-      // Add job
+      //add job
       const docRef = await addDoc(jobsCollection, jobData);
 
-      // Update jobId in the document
+      //update jobId in the document
       await updateDoc(doc(db, "jobs", docRef.id), { jobId: docRef.id });
 
-      // Notify parent (optional)
-      if (onAdd) onAdd(); // just close popup if parent uses onSnapshot
+      if (onAdd) onAdd(); 
 
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
 
-      // Reset form
+      //reset form
       setFormData({
         title: "",
         company: "",
