@@ -12,8 +12,10 @@ import {
   where,
 } from "firebase/firestore";
 import ApplyJobPopup from "./ApplyJobPopup"; 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleUser } from "@fortawesome/free-regular-svg-icons";
 
-export default function JobSearchPage({ user, onLogout }) {
+export default function JobSearchPage({ user, onLogout, avatarRef, onProfileClick }) {
   const [query, setQuery] = useState("");
   const [location] = useState("Australia");
   const [results, setResults] = useState([]);
@@ -141,6 +143,16 @@ export default function JobSearchPage({ user, onLogout }) {
             />
             <button className="jt-btn-find" type="submit">Find Jobs</button>
           </form>
+          <div className="jt-topbar-actions">
+            <div
+              title="Profile"
+              ref={avatarRef}
+              onClick={onProfileClick} 
+              style={{ cursor: "pointer" }}
+            >
+              <FontAwesomeIcon icon={faCircleUser} size="lg" />
+            </div>
+          </div>
         </header>
 
         <section className="jt-results scrollable">

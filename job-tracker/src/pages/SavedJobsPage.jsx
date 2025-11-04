@@ -12,8 +12,10 @@ import {
 } from "firebase/firestore";
 import ApplyJobPopup from "./ApplyJobPopup";
 import "../components/job-tracker.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleUser } from "@fortawesome/free-regular-svg-icons";
 
-export default function SavedJobsPage({ user, onLogout }) {
+export default function SavedJobsPage({ user, onLogout, avatarRef, onProfileClick }) {
   const [savedJobs, setSavedJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -127,25 +129,42 @@ export default function SavedJobsPage({ user, onLogout }) {
       <Sidebar user={user} onLogout={onLogout} />
 
       <main className="jt-main">
-        <header className="jt-topbar">
-          <form onSubmit={handleSearch} className="jt-search-form">
-            <input
-              className="jt-search"
-              placeholder="Search saved or applied jobs..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <div className="jt-topbar-actions">
-              <button type="submit" className="jt-btn-search">
-                🔍 Search
-              </button>
-              {searchTerm && (
-                <button type="button" className="jt-btn-clear" onClick={clearSearch}>
-                  ✖ Clear
+        <header className="saved-jobs-topbar">
+          {/* Left section: search bar + buttons */}
+          <div className="saved-jobs-topbar-left">
+            <form onSubmit={handleSearch} className="jt-search-form">
+              <input
+                className="jt-search"
+                placeholder="Search saved or applied jobs..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <div className="jt-topbar-actions">
+                <button type="submit" className="jt-btn-search">
+                  🔍 Search
                 </button>
-              )}
-            </div>
-          </form>
+                {searchTerm && (
+                  <button
+                    type="button"
+                    className="jt-btn-clear"
+                    onClick={clearSearch}
+                  >
+                    ✖ Clear
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+
+          {/* Right section: profile */}
+          <div
+            title="Profile"
+            ref={avatarRef}
+            onClick={onProfileClick}
+            style={{ cursor: "pointer" }}
+          >
+            <FontAwesomeIcon icon={faCircleUser} size="lg" />
+          </div>
         </header>
 
         <section className="jt-results scrollable">
@@ -232,35 +251,36 @@ export default function SavedJobsPage({ user, onLogout }) {
                   </li>
                 ))}
               </ul>
-                {showDeletePopup && (
-                  <div className="delete-popup-overlay">
-                    <div className="delete-popup">
-                      <div className="delete-popup-header">
-                        <h2>Confirm Deletion</h2>
+
+              {showDeletePopup && (
+                <div className="delete-popup-overlay">
+                  <div className="delete-popup">
+                    <div className="delete-popup-header">
+                      <h2>Confirm Deletion</h2>
+                      <button
+                        className="close-btn"
+                        onClick={() => setShowDeletePopup(false)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="delete-popup-content">
+                      <p>Are you sure you want to delete this job?</p>
+                      <div className="delete-popup-buttons">
+                        <button className="delete-job-btn" onClick={handleDeleteJob}>
+                          Yes, Delete
+                        </button>
                         <button
-                          className="close-btn"
+                          className="cancel-btn"
                           onClick={() => setShowDeletePopup(false)}
                         >
-                          ×
+                          Cancel
                         </button>
-                      </div>
-                      <div className="delete-popup-content">
-                        <p>Are you sure you want to delete this job?</p>
-                        <div className="delete-popup-buttons">
-                          <button className="delete-job-btn" onClick={handleDeleteJob}>
-                            Yes, Delete
-                          </button>
-                          <button
-                            className="cancel-btn"
-                            onClick={() => setShowDeletePopup(false)}
-                          >
-                            Cancel
-                          </button>
-                        </div>
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
             </>
           )}
         </section>

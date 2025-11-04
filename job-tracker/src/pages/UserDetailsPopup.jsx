@@ -1,63 +1,142 @@
 import React, { useState, useEffect } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleUser } from "@fortawesome/free-regular-svg-icons";
+import "../components/job-tracker.css";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "../lib/firebase";
 
-export default function ProfilePopup({ open, anchorRef, user, onEdit, onClose }) {
-  // 🔹 Hooks at the top (always run)
-  const [hash, setHash] = useState(() => window.location.hash || "#board");
+export default function UserDetailsPopup({ open, user, onClose }) {
+  const [userData, setUserData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    phone: "",
+  });
+
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const onHash = () => setHash(window.location.hash || "#board");
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
-  }, []);
+    if (!open || !user?.uid) return;
 
-  useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onClose?.();
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
+    const fetchData = async () => {
+      try {
+        const collectionName = user.role === "employer" ? "employers" : "users";
+        const docRef = doc(db, collectionName, user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) setUserData(docSnap.data());
+      } catch (err) {
+        console.error("Error fetching user details:", err);
+      }
+    };
 
-  // If not open, bail out AFTER hooks
-  if (!open) return null;
+    fetchData();
+    setEditing(false);
+  }, [open, user]);
 
-  // 🔹 Position under the avatar (account for scroll)
-  const rect = anchorRef?.current?.getBoundingClientRect();
-  const top = (rect?.bottom ?? 0) + window.scrollY + 8;
-  const left = (rect
-    ? rect.right + window.scrollX - 280 // 280 ~ popup width
-    : window.innerWidth - 300);
-
-  const style = { position: "fixed", top, left, background: "#3C3659", borderRadius: "10px", height: "110px", width: "270px", boxShadow: "0 4px 12px rgba(0,0,0,0.15)"};
-
-  const item = (target) => `jt-nav-item${hash === target ? " active" : ""}`;
-
-  const handleEdit = () => {
-    onClose?.();
-    if (onEdit) onEdit();
-    else window.location.hash = "#profile"; // fallback navigation
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setUserData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleSave = async () => {
+    if (!user?.uid) return;
+    setSaving(true);
+    try {
+      const collectionName = user.role === "employer" ? "employers" : "users";
+      await updateDoc(doc(db, collectionName, user.uid), userData);
+      setEditing(false);
+      onClose();
+    } catch (err) {
+      console.error("Error updating user:", err);
+      alert("Failed to save changes");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) return null;
+
   return (
-    <div className="profile-popup" style={style} onMouseLeave={onClose}>
-      <svg className="user-details-profile-pic" xmlns="http://www.w3.org/2000/svg" width="195" height="203" viewBox="0 0 195 203" fill="none" style={{ position: "absolute", width: "42px", height: "42px", left: "12px", top: "13px" }}>
-        <FontAwesomeIcon icon={faCircleUser} size="lg" />
-      </svg>
-      <div className="profile-header" style={{position: "relative", top: "9px", left: "70px", paddingBottom: "5px"}}>
-        <div className="profile-info">
-          <div className="profile-name"><span style={{fontWeight: "bold"}}>Name: </span>{user?.displayName || "fname lname"}</div>
-          <div className="profile-email"><span style={{fontWeight: "bold"}}>Email: </span>{user?.email || "fname.lname@mail.com"}</div>
-          <div className="profile-location">
-            <span style={{fontWeight: "bold"}}>Location: </span>
-            {user?.location || "Sydney, Australia"}
-          </div>
+    <div className="user-popup-overlay" onClick={onClose}>
+      <div className="user-popup" onClick={(e) => e.stopPropagation()}>
+        <button className="close-btn" onClick={onClose}>
+          ×
+        </button>
+        <h2>User Details</h2>
+
+        <div className="user-row">
+          <div className="user-label">Full Name:</div>
+          <input
+            type="text"
+            name="firstName"
+            value={userData.firstName}
+            onChange={handleChange}
+            disabled={!editing}
+            placeholder="First Name"
+          />
+          <input
+            type="text"
+            name="lastName"
+            value={userData.lastName}
+            onChange={handleChange}
+            disabled={!editing}
+            placeholder="Last Name"
+          />
         </div>
-      </div>
-      <hr />
-      <div className="profile-footer" onClick={handleEdit} role="button" tabIndex={0}>
-        <a className={item("#profile")} href="#profile" style={{position: "relative", top: "0px", left: "50px", fontWeight: "bold"}}>
-          <span>Customise Profile</span>
-        </a>
+
+        <div className="user-row">
+          <div className="user-label">Email:</div>
+          <input
+            type="email"
+            name="email"
+            value={userData.email}
+            onChange={handleChange}
+            disabled={!editing}
+          />
+        </div>
+
+        <div className="user-row">
+          <div className="user-label">Password:</div>
+          <input
+            type="password"
+            name="password"
+            value={userData.password}
+            onChange={handleChange}
+            disabled={!editing}
+          />
+        </div>
+
+        <div className="user-row">
+          <div className="user-label">Phone:</div>
+          <input
+            type="text"
+            name="phone"
+            value={userData.phone}
+            onChange={handleChange}
+            disabled={!editing}
+          />
+        </div>
+
+        <div className="button-group">
+          {!editing ? (
+            <button className="edit-btn" onClick={() => setEditing(true)}>
+              Edit
+            </button>
+          ) : (
+            <>
+              <button className="cancel-btn" onClick={() => setEditing(false)}>
+                Cancel
+              </button>
+              <button
+                className="save-btn"
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Save"}
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

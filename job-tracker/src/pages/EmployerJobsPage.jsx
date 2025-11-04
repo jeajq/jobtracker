@@ -5,8 +5,11 @@ import "../components/job-tracker.css";
 import AddJob from "./AddJob.jsx";
 import Sidebar from "../components/sidebar.jsx";
 import ViewApplicantsPopup from "./ViewApplicantsPopup.jsx";
+import UserDetailsPopup from "../pages/UserDetailsPopup.jsx"; 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleUser } from "@fortawesome/free-regular-svg-icons";
 
-export default function EmployerJobsPage({ user, navigate, onLogout }) {
+export default function EmployerJobsPage({ user, navigate, onLogout, avatarRef, onProfileClick }) {
   const [jobs, setJobs] = useState([]);
   const [showAddJob, setShowAddJob] = useState(false);
   const [deleteJobId, setDeleteJobId] = useState(null);
@@ -14,6 +17,9 @@ export default function EmployerJobsPage({ user, navigate, onLogout }) {
   const [showDeleteToast, setShowDeleteToast] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const [showApplicantsPopup, setShowApplicantsPopup] = useState(false);
+
+  // Profile popup state
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
 
   useEffect(() => {
     if (user && user.type?.toLowerCase() !== "employer" && navigate) {
@@ -58,15 +64,29 @@ export default function EmployerJobsPage({ user, navigate, onLogout }) {
 
   return (
     <div className="jt-app">
-       <Sidebar user={user} onLogout={onLogout} />
+      <Sidebar user={user} onLogout={onLogout} />
+
       <main className="jt-main">
         <header className="jt-topbar">
           <h2>Jobs You Created</h2>
-          {user?.type?.toLowerCase() === "employer" && (
-            <button className="add-job-btn" onClick={() => setShowAddJob(true)}>
-              <span className="add-job-circle">+</span> Add Job
-            </button>
-          )}
+
+          {/* Topbar actions */}
+          <div className="jt-topbar-actions">
+            {user?.type?.toLowerCase() === "employer" && (
+              <button className="add-job-btn" onClick={() => setShowAddJob(true)}>
+                <span className="add-job-circle">+</span> Add Job
+              </button>
+            )}
+
+            <div
+              title="Profile"
+              ref={avatarRef}
+              onClick={onProfileClick} 
+              style={{ cursor: "pointer" }}
+              >
+             <FontAwesomeIcon icon={faCircleUser} size="lg" />
+            </div>
+          </div>
         </header>
 
         <section className="employer-jobs-list">
@@ -99,6 +119,7 @@ export default function EmployerJobsPage({ user, navigate, onLogout }) {
         </section>
 
         {showAddJob && <AddJob user={user} onClose={() => setShowAddJob(false)} />}
+
         {showDeletePopup && (
           <div className="delete-popup-overlay">
             <div className="delete-popup">
@@ -125,6 +146,14 @@ export default function EmployerJobsPage({ user, navigate, onLogout }) {
           <div className="toast-success">
             🗑️ Job deleted successfully!
           </div>
+        )}
+
+        {/* Profile popup */}
+        {showProfilePopup && user && (
+          <UserDetailsPopup
+            user={user}
+            onClose={() => setShowProfilePopup(false)}
+          />
         )}
       </main>
     </div>
