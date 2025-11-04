@@ -3,6 +3,8 @@ import React, { useEffect, useState, useRef } from "react";
 // import "../components/jobBoard.css";  FIX WHEN jobBoard.css is added
 import Sidebar from "../components/sidebar.jsx";
 import JobColumn from "../components/JobColumn.jsx";
+import UserDetailsPage from "./UserDetailsPage.jsx";
+import UserDetailsPopup from "./UserDetailsPopup.jsx";
 import { db } from "../lib/firebase.js";
 import {
   collection,
@@ -16,6 +18,9 @@ import {
   serverTimestamp,
   deleteDoc,
 } from "firebase/firestore";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleUser } from "@fortawesome/free-regular-svg-icons";
 
 const COLUMNS = [
   { id: "applied", label: "Applied" },
@@ -38,6 +43,8 @@ export default function JobTrackerPage({ user, onLogout }) {
   const dragRef = useRef({ colId: null, index: null });
   const isUpdating = useRef(false);
 
+  const [openPopup, setOpenPopup] = useState(false);
+  const avatarRef = useRef(null);
   // live snapshot per column
   useEffect(() => {
     const unsubs = COLUMNS.map(({ id }) => {
@@ -249,10 +256,24 @@ export default function JobTrackerPage({ user, onLogout }) {
             onChange={(e) => setSearch(e.target.value)}
           />
           <div className="jt-topbar-actions">
-            <div className="jt-avatar" title="Profile" />
+            <div 
+                // className="jt-avatar"
+                title="Profile"
+                ref={avatarRef}
+                onClick={() => setOpenPopup(!openPopup)}
+            >
+                <FontAwesomeIcon icon={faCircleUser} size="lg" />
+            </div>
             <div className="jt-gear" title="Settings">
               ⚙︎
             </div>
+            <UserDetailsPopup
+              open={openPopup}
+              anchorRef={avatarRef}
+              user={user}
+            //   onEdit={() => alert("Open profile settings")}
+              onClose={() => setOpenPopup(false)}
+            />
           </div>
         </header>
 
