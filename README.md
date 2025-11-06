@@ -21,7 +21,7 @@ The platform allows users to:
 
 This project was developed as part of a **UTS Software Development Studio** coursework, serving as a prototype for an application targeted at **students and early-career professionals** who need an easy way to organise and track their job search process.
 
-The client’s goal was to create a **centralised job management system** that combines tracking, discovery, and saving of potential opportunities in one place.
+The project's goal was to create a**centralised job management system** that combines tracking, discovery, and saving of potential opportunities in one place.
 
 ## Key Features
 - Real-time data synchronisation using **Firebase Firestore**
